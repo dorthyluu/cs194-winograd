@@ -30,7 +30,7 @@ if __name__ == "__main__":
 			"height, width, and number of images respectively"])
 		sys.exit()
 	if (argc == 6):
-		K, C, H, W, N = tuple(sys.argv[1:])
+		K, C, H, W, N = tuple([int(el) for el in sys.argv[1:]])
 	filters, data = gen_problem(K, C, H, W, N)
 	print K, C, H, W, N
 	for _filter in filters:
