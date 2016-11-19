@@ -1,10 +1,6 @@
 import numpy as np
 import math
 
-# one filter
-# one channel - NEXT: extend to 2 or 3 channels!!!
-# two images (P = 2)
-
 m = 2
 r = 3
 alpha = m + r - 1 # alpha x alpha
