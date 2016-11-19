@@ -40,9 +40,5 @@ int main(int argc, char* argv[])
       }
     }
   }
-  cout << images[0][0](0, 0);
-
-
-
   return 0;
 }

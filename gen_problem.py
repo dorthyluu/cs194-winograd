@@ -25,10 +25,10 @@ if __name__ == "__main__":
 	N = 2
 	argc = len(sys.argv)
 	if (argc != 1 and argc != 6):
-		# print "Usage: [python gen_problem.py] to use default values, or " +
-		# 	"[python gen_problem.py K C H W N] to specify number of filters, number of channels, " +
-		# 	"height, width, and number of images respectively"
-			sys.exit()
+		print "".join(["Usage: [python gen_problem.py] to use default values, or ",
+			"[python gen_problem.py K C H W N] to specify number of filters, number of channels, ",
+			"height, width, and number of images respectively"])
+		sys.exit()
 	if (argc == 6):
 		K, C, H, W, N = tuple(sys.argv[1:])
 	filters, data = gen_problem(K, C, H, W, N)
@@ -39,7 +39,7 @@ if __name__ == "__main__":
 				print " ".join([str(el) for el in row])
 			print ""
 		print "\n"
-		
+
 	print "\n\n"
 
 	for image in data:
