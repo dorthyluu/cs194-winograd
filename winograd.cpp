@@ -55,12 +55,6 @@ mat** convolute(int K, int C, int H, int W, int N, mat** filters, mat** images) 
     }
   }
 
-  for (int i = 0; i < alpha; i++) {
-    for (int j = 0; j < alpha; j++) {
-      // cout << U[i][j] << "\n";
-    }
-  }
-
   mat **V = create_fourd_array(alpha, alpha, C, P);
   for (int i = 0; i < N; i++) {
     for (int c = 0; c < C; c++) {
