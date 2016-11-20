@@ -17,6 +17,13 @@ mat** create_fourd_array(int d1, int d2, int d3, int d4) {
   return array;
 }
 
+void free_fourd_array(mat** array, int d1) {
+  for (int i = 0; i < d1; i++) {
+    free(array[i]);
+  }
+  free(array);
+}
+
 mat** convolute(int K, int C, int H, int W, int N, mat** filters, mat** images) {
   int m = 2;
   int r = 3;
@@ -81,6 +88,9 @@ mat** convolute(int K, int C, int H, int W, int N, mat** filters, mat** images) 
     }
   }
 
+  free_fourd_array(U, alpha);
+  free_fourd_array(V, alpha);
+
   mat **Y = create_fourd_array(N, K, out_H, out_W);
   mat m_hold = zeros<mat>(alpha, alpha);
   for (int i = 0; i < N; i++) {
@@ -98,6 +108,8 @@ mat** convolute(int K, int C, int H, int W, int N, mat** filters, mat** images) 
       }
     }
   }
+
+  free_fourd_array(M, alpha);
   return Y;
 }
 
@@ -131,6 +143,7 @@ int main(int argc, char* argv[])
       }
     }
   }
+  file.close();
 
   mat** Y = convolute(K, C, H, W, N, filters, images);
   for (int i = 0; i < N; i++) {
@@ -139,5 +152,9 @@ int main(int argc, char* argv[])
     }
     cout << "\n";
   }
+
+  free_fourd_array(Y, N);
+  free_fourd_array(filters, K);
+  free_fourd_array(images, N);
   return 0;
 }
