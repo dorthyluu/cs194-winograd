@@ -2,3 +2,7 @@
 - install latest XCode Command Line Tools
 - install [brew](http://brew.sh/)
 - install armadillo `brew install armadillo`
+
+## Run naive convolution
+	- Create a problem file by running `python3 gen_problem.py > [problem filename]`
+	- Use the file as input for the program `cat [problem filename] | ./naive_convolution`
