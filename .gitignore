@@ -1,3 +1,4 @@
 winograd
 *.in
 naive_convolution
+*.txt

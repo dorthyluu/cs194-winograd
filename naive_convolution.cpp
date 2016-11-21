@@ -40,13 +40,15 @@ void convolution_helper(float* &in, float* &filter, float* &out, int height, int
 	// cout << endl;
 }
 
-void convolution(float*** &data, float*** &filters, float** &output,
+void convolution(float*** &data, float*** &filters, float*** &output,
 					int K, int C, int H, int W, int N) {
 	for (int n = 0; n < N; n++) {
 		for (int c = 0; c < C; c++) {
-			// print_filter(filters[n][c]);
-			// print_image(data[n][c], H, W);
-			convolution_helper(data[n][c], filters[n][c], output[n], H, W);
+			for (int k = 0; k < K; k++) {
+				// print_filter(filters[n][c]);
+				// print_image(data[n][c], H, W);
+				convolution_helper(data[n][c], filters[k][c], output[n][k], H, W);
+			}
 		}
 	}
 }
@@ -71,7 +73,7 @@ int main(int argc, char const *argv[])
 						cout << "ERROR: Invalid format\n";
 						return 1;
 					}
-				// printf("%f ", filters[i][j][m*3+n]);
+					// cout << setw(6) << setprecision(4) << filters[i][j][m*3+n] << " ";
 				}
 				// cout << endl;
 			}
@@ -87,11 +89,11 @@ int main(int argc, char const *argv[])
 			data[i][j] = new float[H*W];
 			for (int m = 0; m < H; m++) {
 				for (int n = 0; n < W; n++) {
-				if (scanf("%f", &data[i][j][m*H+n]) != 1) {
-					cout << "ERROR: Invalid format\n";
-					return 1;
-				}
-				// printf("%f ", data[i][j][m*3+n]);
+					if (scanf("%f", &data[i][j][m*H+n]) != 1) {
+						cout << "ERROR: Invalid format\n";
+						return 1;
+					}
+					// cout << setw(6) << setprecision(4) << data[i][j][m*H+n] << " ";
 				}
 				// cout << endl;
 			}
@@ -100,9 +102,12 @@ int main(int argc, char const *argv[])
 	}
 
 	// Create empty output object
-	float **output = new float*[N];
+	float ***output = new float**[N];
 	for (int i = 0; i < N; i++) {
-		output[i] = new float[H*W]();
+		output[i] = new float*[K];
+		for (int j = 0; j < K; j++) {
+			output[i][j] = new float[H*W]();	
+		}
 	}
 
 	// Run the data
@@ -110,9 +115,12 @@ int main(int argc, char const *argv[])
 
 	// Print the values stored in output
 	for (int n = 0; n < N; n++) {
-		for (int i = 0; i < H; i++) {
-			for (int j = 0; j < W; j++) {
-				cout << setw(8) << output[n][i*H+j] << " ";
+		for (int k = 0; k < K; k++) {
+			for (int i = 0; i < H; i++) {
+				for (int j = 0; j < W; j++) {
+					cout << setw(6) << setprecision(4) << output[n][k][i*H+j] << " ";
+				}
+				cout << endl;
 			}
 			cout << endl;
 		}
@@ -138,6 +146,9 @@ int main(int argc, char const *argv[])
 	delete [] data;
 
 	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < K; j++) {
+			delete [] output[i][j];
+		}
 		delete [] output[i];
 	}
 	delete [] output;
