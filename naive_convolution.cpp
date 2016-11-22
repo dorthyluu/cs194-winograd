@@ -1,7 +1,11 @@
 #include <iostream>
 #include <iomanip>
+#include <sys/time.h>
 
 using namespace std;
+
+double timestamp();
+void report_naive_statistics(int K, int C, int H, int W, int N, double time);
 
 void print_filter(float* filter) {
 	for (int i = 0; i < 3; i++) {
@@ -27,13 +31,11 @@ void convolution_helper(float* &in, float* &filter, float* &out, int height, int
 	float sum;
 	for (int i = 1; i < height-1; i++) {
 		for (int j = 1; j < width-1; j++) {
-			sum = 0;
 			for (int ii = i-1; ii <= i+1; ii++) {
 				for (int jj = j-1; jj <= j+1; jj++) {
-					sum += in[ii*height+jj] * filter[(ii-i+1)*3+jj-j+1];
+					out[i*height+j] += in[ii*height+jj] * filter[(ii-i+1)*3+jj-j+1];
 				}
 			}
-			out[i*height+j] += sum;
 			// cout << setw(3) << i*height+j << setw(5) << sum << endl;
 		}
 	}
@@ -42,6 +44,8 @@ void convolution_helper(float* &in, float* &filter, float* &out, int height, int
 
 void convolution(float*** &data, float*** &filters, float*** &output,
 					int K, int C, int H, int W, int N) {
+  double time = timestamp();
+
 	for (int n = 0; n < N; n++) {
 		for (int c = 0; c < C; c++) {
 			for (int k = 0; k < K; k++) {
@@ -51,6 +55,23 @@ void convolution(float*** &data, float*** &filters, float*** &output,
 			}
 		}
 	}
+
+  time = timestamp() - time;
+  report_naive_statistics(K, C, H, W, N, time);
+}
+
+double timestamp()
+{
+  struct timeval tv;
+  gettimeofday (&tv, 0);
+  return tv.tv_sec + 1e-6*tv.tv_usec;
+}
+
+void report_naive_statistics(int K, int C, int H, int W, int N, double time) {
+  double mflops = (N * K * C * H * W * 3 * 3 * 2)
+                / (1024.0 * 1024.0 * time);
+  cout << "Time Elapsed: " << time << "\n";
+  cout << "MFlop/s: " << mflops << "\n";
 }
 
 int main(int argc, char const *argv[])

@@ -2,9 +2,13 @@
 #include <fstream>
 #include <armadillo>
 #include <math.h>
+#include <sys/time.h>
 
 using namespace std;
 using namespace arma;
+
+double timestamp();
+void report_winograd_statistics(int K, int C, int P, int N, double time);
 
 mat** create_fourd_array(int d1, int d2, int d3, int d4) {
   mat** array = (mat**) malloc(sizeof(mat*) * d1);
@@ -50,9 +54,20 @@ mat** convolute(int K, int C, int H, int W, int N, mat** filters, mat** images) 
     return i * num_h_tiles * num_w_tiles + y * num_w_tiles + x;
   };
 
+  // factoring out malloc'ing before measuring runtime
   mat **U = create_fourd_array(alpha, alpha, K, C);
+  mat **V = create_fourd_array(alpha, alpha, C, P);
+  mat **M = (mat**) malloc(sizeof(mat*) * alpha);
+  mat **Y = create_fourd_array(N, K, out_H, out_W);
+  for (int xi = 0; xi < alpha; xi++) {
+    M[xi] = (mat*) malloc(sizeof(mat) * alpha);
+  }
+
+  double time = timestamp();
+
   for (int k = 0; k < K; k++) {
     for (int c = 0; c < C; c++) {
+      // flop: N * C * (4 * 3 * 5) * 2 
       mat u = G * filters[k][c] * G.t();
       for (int xi = 0; xi < alpha; xi++) {
         for (int nu = 0; nu < alpha; nu++) {
@@ -62,12 +77,12 @@ mat** convolute(int K, int C, int H, int W, int N, mat** filters, mat** images) 
     }
   }
 
-  mat **V = create_fourd_array(alpha, alpha, C, P);
   for (int i = 0; i < N; i++) {
     for (int c = 0; c < C; c++) {
       for (int y = 0; y < num_h_tiles; y++) {
         for (int x = 0; x < num_w_tiles; x++) {
           mat d = images[i][c](span(y * m, y * m + alpha - 1), span(x * m, x * m + alpha - 1));
+          // flop: C * P * (4 * 4 * 7) * 2
           mat v = B.t() * d * B;
           int b = gen_b(i, y, x);
           for (int xi = 0; xi < alpha; xi++) {
@@ -80,18 +95,14 @@ mat** convolute(int K, int C, int H, int W, int N, mat** filters, mat** images) 
     }
   }
 
-  mat **M = (mat**) malloc(sizeof(mat*) * alpha);
+  
   for (int xi = 0; xi < alpha; xi++) {
-    M[xi] = (mat*) malloc(sizeof(mat) * alpha);
     for (int nu = 0; nu < alpha; nu++) {
+      // flop: 16 * K * P * (2C - 1) 
       M[xi][nu] = U[xi][nu] * V[xi][nu];
     }
   }
 
-  free_fourd_array(U, alpha);
-  free_fourd_array(V, alpha);
-
-  mat **Y = create_fourd_array(N, K, out_H, out_W);
   mat m_hold = zeros<mat>(alpha, alpha);
   for (int i = 0; i < N; i++) {
     for (int k = 0; k < K; k++) {
@@ -103,14 +114,37 @@ mat** convolute(int K, int C, int H, int W, int N, mat** filters, mat** images) 
               m_hold(xi, nu) = M[xi][nu](k, b);
             }
           }
+          // flop: N * K * P * (2 * 4 * 7) * 2
           Y[i][k](span(y*m, (y+1)*m-1), span(x*m, (x+1)*m-1)) = A.t() * m_hold * A;
         }
       }
     }
   }
 
+  time = timestamp() - time;
+  report_winograd_statistics(K, C, P, N, time);
+
+  free_fourd_array(U, alpha);
+  free_fourd_array(V, alpha);
   free_fourd_array(M, alpha);
   return Y;
+}
+
+double timestamp()
+{
+  struct timeval tv;
+  gettimeofday (&tv, 0);
+  return tv.tv_sec + 1e-6*tv.tv_usec;
+}
+
+void report_winograd_statistics(int K, int C, int P, int N, double time) {
+  double mflops = (N * C * (4 * 3 * 5) * 2 +
+                   C * P * (4 * 4 * 7) * 2 + 
+                   16 * K * P * (2 * C - 1) + 
+                   N * K * P * (2 * 4 * 7) * 2)
+                / (1024.0 * 1024.0 * time);
+  cout << "Time Elapsed: " << time << "\n";
+  cout << "MFlop/s: " << mflops << "\n";
 }
 
 int main(int argc, char* argv[])
