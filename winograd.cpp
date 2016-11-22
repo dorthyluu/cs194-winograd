@@ -138,11 +138,12 @@ double timestamp()
 }
 
 void report_winograd_statistics(int K, int C, int P, int N, double time) {
-  double mflops = (N * C * (4 * 3 * 5) * 2 +
+  int flop = (N * C * (4 * 3 * 5) * 2 +
                    C * P * (4 * 4 * 7) * 2 + 
                    16 * K * P * (2 * C - 1) + 
-                   N * K * P * (2 * 4 * 7) * 2)
-                / (1024.0 * 1024.0 * time);
+                   N * K * P * (2 * 4 * 7) * 2);
+  double mflops = flop / (1024.0 * 1024.0 * time);
+  cout << "Floating point operations: " << flop << "\n";
   cout << "Time Elapsed: " << time << "\n";
   cout << "MFlop/s: " << mflops << "\n";
 }

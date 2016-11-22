@@ -68,8 +68,9 @@ double timestamp()
 }
 
 void report_naive_statistics(int K, int C, int H, int W, int N, double time) {
-  double mflops = (N * K * C * H * W * 3 * 3 * 2)
-                / (1024.0 * 1024.0 * time);
+  int flop = (N * K * C * H * W * 3 * 3 * 2);
+  double mflops = flop / (1024.0 * 1024.0 * time);
+  cout << "Floating point operations: " << flop << "\n";
   cout << "Time Elapsed: " << time << "\n";
   cout << "MFlop/s: " << mflops << "\n";
 }
