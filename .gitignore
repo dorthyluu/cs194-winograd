@@ -1,4 +1,6 @@
 winograd
-*.in
 naive_convolution
+compare_outputs
+*.in
+*.out
 *.txt

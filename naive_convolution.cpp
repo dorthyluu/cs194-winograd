@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 #include <sys/time.h>
 
 using namespace std;
@@ -49,7 +50,7 @@ void convolution(float*** &data, float*** &filters, float*** &output,
 	for (int n = 0; n < N; n++) {
 		for (int c = 0; c < C; c++) {
 			for (int k = 0; k < K; k++) {
-				// print_filter(filters[n][c]);
+				// print_filter(filters[k][c]);
 				// print_image(data[n][c], H, W);
 				convolution_helper(data[n][c], filters[k][c], output[n][k], H, W);
 			}
@@ -77,24 +78,25 @@ void report_naive_statistics(int K, int C, int H, int W, int N, double time) {
 
 int main(int argc, char const *argv[])
 {
-	int K, C, H, W, N;
-	if (scanf("%d %d %d %d %d\n", &K, &C, &H, &W, &N) != 5) {
-		cout << "ERROR: Invalid format\n";
-		return 1;
-	}
+	if (argc != 3) {
+    cout << "Usage: ./naive_convolution <input filename> <output filename>\n";
+    return 1;
+  }
+  ifstream file;
+  file.open(argv[1]);
 
+	int K, C, H, W, N;
+  file >> K >> C >> H >> W >> N;
+
+  // Read in data for filters
 	float ***filters = new float**[K];
-	// Read in data for filters
 	for (int i = 0; i < K; i++) {
 		filters[i] = new float*[C];
 		for (int j = 0; j < C; j++) {
 			filters[i][j] = new float[9];
 			for (int m = 0; m < 3; m++) {
 				for (int n = 0; n < 3; n++) {
-					if (scanf("%f", &filters[i][j][m*3+n]) != 1) {
-						cout << "ERROR: Invalid format\n";
-						return 1;
-					}
+          file >> filters[i][j][m*3+n];
 					// cout << setw(6) << setprecision(4) << filters[i][j][m*3+n] << " ";
 				}
 				// cout << endl;
@@ -111,10 +113,7 @@ int main(int argc, char const *argv[])
 			data[i][j] = new float[H*W];
 			for (int m = 0; m < H; m++) {
 				for (int n = 0; n < W; n++) {
-					if (scanf("%f", &data[i][j][m*H+n]) != 1) {
-						cout << "ERROR: Invalid format\n";
-						return 1;
-					}
+          file >> data[i][j][m*H+n];
 					// cout << setw(6) << setprecision(4) << data[i][j][m*H+n] << " ";
 				}
 				// cout << endl;
@@ -122,6 +121,7 @@ int main(int argc, char const *argv[])
 			// cout << endl;
 		}
 	}
+  file.close();
 
 	// Create empty output object
 	float ***output = new float**[N];
@@ -135,20 +135,23 @@ int main(int argc, char const *argv[])
 	// Run the data
 	convolution(data, filters, output, K, C, H, W, N);
 
-	// Print the values stored in output
+	// Print the output to file
+  ofstream fileout;
+  fileout.open(argv[2]);
+  fileout << K << " " << C << " " << H << " " << W << " " << N << endl;
 	for (int n = 0; n < N; n++) {
 		for (int k = 0; k < K; k++) {
 			for (int i = 0; i < H; i++) {
 				for (int j = 0; j < W; j++) {
-					cout << setw(6) << setprecision(4) << output[n][k][i*H+j] << " ";
+					fileout << setw(6) << setprecision(4) << output[n][k][i*H+j] << " ";
 				}
-				cout << endl;
+				fileout << endl;
 			}
-			cout << endl;
+			fileout << endl;
 		}
-		cout << endl;
+		fileout << endl;
 	}
-
+  fileout.close();
 
 	// Cleanup
 	for (int i = 0; i < K; i++) {
