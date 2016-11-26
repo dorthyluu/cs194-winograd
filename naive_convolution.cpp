@@ -137,12 +137,12 @@ int main(int argc, char const *argv[])
 
 	// Print the output to file
   ofstream fileout;
-  fileout.open(argv[2]);
+  fileout.open(argv[2], ofstream::out | ofstream::trunc );
   fileout << K << " " << C << " " << H << " " << W << " " << N << endl;
 	for (int n = 0; n < N; n++) {
 		for (int k = 0; k < K; k++) {
-			for (int i = 0; i < H; i++) {
-				for (int j = 0; j < W; j++) {
+			for (int i = 1; i < H-1; i++) {
+				for (int j = 1; j < W-1; j++) {
 					fileout << setw(6) << setprecision(4) << output[n][k][i*H+j] << " ";
 				}
 				fileout << endl;

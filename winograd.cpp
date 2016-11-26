@@ -150,8 +150,8 @@ void report_winograd_statistics(int K, int C, int P, int N, double time) {
 
 int main(int argc, char* argv[])
 {
-  if (argc != 2) {
-    cout << "Usage: ./winograd <problem.in>\n";
+  if (argc != 3) {
+    cout << "Usage: ./winograd <input filename> <output filename>\n";
   }
   ifstream file;
   file.open(argv[1]);
@@ -181,12 +181,17 @@ int main(int argc, char* argv[])
   file.close();
 
   mat** Y = convolute(K, C, H, W, N, filters, images);
+
+  ofstream fileout;
+  fileout.open(argv[2], ofstream::out | ofstream::trunc );
+  fileout << K << " " << C << " " << H << " " << W << " " << N << endl;
   for (int i = 0; i < N; i++) {
     for (int k = 0; k < K; k++) {
-      cout << Y[i][k] << "\n";
+      fileout << Y[i][k] << "\n";
     }
-    cout << "\n";
+    fileout << "\n";
   }
+  fileout.close();
 
   free_fourd_array(Y, N);
   free_fourd_array(filters, K);

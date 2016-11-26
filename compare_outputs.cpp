@@ -2,7 +2,7 @@
 #include <fstream>
 #include <cmath>
 
-#define EPSILON 0.0001
+#define EPSILON 0.01
 
 using namespace std;
 
@@ -30,8 +30,8 @@ int main(int argc, char const *argv[])
 
   for (int n = 0; n < N1; n++) {
      for (int k = 0; k < K1; k++) {
-        for (int h = 0; h < H1; h++) {
-           for (int w = 0; w < W1; w++) {
+        for (int h = 0; h < H1 - 2; h++) {
+           for (int w = 0; w < W1 - 2; w++) {
               output1 >> val1;
               output2 >> val2;
               if (abs(val1 - val2) > EPSILON) {
