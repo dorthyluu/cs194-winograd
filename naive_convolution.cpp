@@ -6,7 +6,7 @@
 using namespace std;
 
 double timestamp();
-void report_naive_statistics(int K, int C, int H, int W, int N, double time);
+void report_naive_statistics(int K, int C, int H, int W, double time);
 
 void print_filter(float* filter) {
   for (int i = 0; i < 3; i++) {
@@ -37,28 +37,22 @@ void convolution_helper(float* &in, float* &filter, float* &out, int height, int
           out[i*height+j] += in[ii*height+jj] * filter[(ii-i+1)*3+jj-j+1];
         }
       }
-      // cout << setw(3) << i*height+j << setw(5) << sum << endl;
     }
   }
-  // cout << endl;
 }
 
-void convolution(float*** &data, float*** &filters, float*** &output,
-          int K, int C, int H, int W, int N) {
+void convolution(float** &data, float*** &filters, float** &output,
+          int K, int C, int H, int W) {
   double time = timestamp();
 
-  for (int n = 0; n < N; n++) {
-    for (int c = 0; c < C; c++) {
-      for (int k = 0; k < K; k++) {
-        // print_filter(filters[k][c]);
-        // print_image(data[n][c], H, W);
-        convolution_helper(data[n][c], filters[k][c], output[n][k], H, W);
-      }
+  for (int c = 0; c < C; c++) {
+    for (int k = 0; k < K; k++) {
+      convolution_helper(data[c], filters[k][c], output[k], H, W);
     }
   }
 
   time = timestamp() - time;
-  report_naive_statistics(K, C, H, W, N, time);
+  report_naive_statistics(K, C, H, W, time);
 }
 
 double timestamp()
@@ -68,8 +62,8 @@ double timestamp()
   return tv.tv_sec + 1e-6*tv.tv_usec;
 }
 
-void report_naive_statistics(int K, int C, int H, int W, int N, double time) {
-  int flop = (N * K * C * H * W * 3 * 3 * 2);
+void report_naive_statistics(int K, int C, int H, int W, double time) {
+  int flop = (K * C * H * W * 3 * 3 * 2);
   double mflops = flop / (1024.0 * 1024.0 * time);
   cout << "Floating point operations: " << flop << "\n";
   cout << "Time Elapsed: " << time << "\n";
@@ -85,8 +79,8 @@ int main(int argc, char const *argv[])
   ifstream file;
   file.open(argv[1]);
 
-  int K, C, H, W, N;
-  file >> K >> C >> H >> W >> N;
+  int K, C, H, W;
+  file >> K >> C >> H >> W;
 
   // Read in data for filters
   float ***filters = new float**[K];
@@ -97,55 +91,40 @@ int main(int argc, char const *argv[])
       for (int m = 0; m < 3; m++) {
         for (int n = 0; n < 3; n++) {
           file >> filters[i][j][m*3+n];
-          // cout << setw(6) << setprecision(4) << filters[i][j][m*3+n] << " ";
         }
-        // cout << endl;
       }
-      // cout << endl;
     }
   }
 
   // Read in data for image
-  float ***data = new float**[N];
-  for (int i = 0; i < N; i++) {
-    data[i] = new float*[C];
-    for (int j = 0; j < C; j++) {
-      data[i][j] = new float[H*W];
-      for (int m = 0; m < H; m++) {
-        for (int n = 0; n < W; n++) {
-          file >> data[i][j][m*H+n];
-          // cout << setw(6) << setprecision(4) << data[i][j][m*H+n] << " ";
-        }
-        // cout << endl;
+  float **data = new float*[C];
+  for (int c = 0; c < C; c++) {
+    data[c] = new float[H*W]();
+    for (int m = 0; m < H; m++) {
+      for (int n = 0; n < W; n++) {
+        file >> data[c][m*H+n];
       }
-      // cout << endl;
     }
   }
   file.close();
 
   // Create empty output object
-  float ***output = new float**[N];
-  for (int i = 0; i < N; i++) {
-    output[i] = new float*[K];
-    for (int j = 0; j < K; j++) {
-      output[i][j] = new float[H*W]();  
-    }
+  float **output = new float*[K];
+  for (int k = 0; k < K; k++) {
+    output[k] = new float[H*W]();  
   }
 
   // Run the data
-  convolution(data, filters, output, K, C, H, W, N);
+  convolution(data, filters, output, K, C, H, W);
 
   // Print the output to file
   ofstream fileout;
   fileout.open(argv[2], ofstream::out | ofstream::trunc );
-  fileout << K << " " << C << " " << H << " " << W << " " << N << endl;
-  for (int n = 0; n < N; n++) {
-    for (int k = 0; k < K; k++) {
-      for (int i = 1; i < H-1; i++) {
-        for (int j = 1; j < W-1; j++) {
-          fileout << setw(6) << setprecision(4) << output[n][k][i*H+j] << " ";
-        }
-        fileout << endl;
+  fileout << K << " " << C << " " << H << " " << W << " " << endl;
+  for (int k = 0; k < K; k++) {
+    for (int i = 1; i < H-1; i++) {
+      for (int j = 1; j < W-1; j++) {
+        fileout << setw(6) << setprecision(4) << output[k][i*H+j] << " ";
       }
       fileout << endl;
     }
@@ -162,19 +141,13 @@ int main(int argc, char const *argv[])
   }
   delete [] filters;
 
-  for (int i = 0; i < N; i++) {
-    for (int j = 0; j < C; j++) {
-      delete [] data[i][j];
-    }
-    delete [] data[i];
+  for (int c = 0; c < C; c++) {
+    delete [] data[c];
   }
   delete [] data;
 
-  for (int i = 0; i < N; i++) {
-    for (int j = 0; j < K; j++) {
-      delete [] output[i][j];
-    }
-    delete [] output[i];
+  for (int k = 0; k < K; k++) {
+    delete [] output[k];
   }
   delete [] output;
   return 0;
