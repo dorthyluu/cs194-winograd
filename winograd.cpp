@@ -54,15 +54,19 @@ void convolute(int K, int C, int H, int W, cube* filters, cube& image, cube& res
     return y * num_w_tiles + x;
   };
 
+  auto calc_mflops = [](double time, int flops) -> double {
+    return flops / (time * 1024.0 * 1024.0);
+  };
+
   // factoring out malloc'ing before measuring runtime
   mat **U = create_fourd_array(alpha, alpha, K, C);
   mat **V = create_fourd_array(alpha, alpha, C, P);
-  mat**M = new mat*[alpha]();
+  mat **M = new mat*[alpha]();
   for (int xi = 0; xi < alpha; xi++) {
     M[xi] = new mat[alpha];
   }
+  // mat **M_hold = create_fourd_array(K, P, alpha, alpha);
   
-
   double time = timestamp();
 
   for (int k = 0; k < K; k++) {
@@ -76,6 +80,10 @@ void convolute(int K, int C, int H, int W, cube* filters, cube& image, cube& res
       }
     }
   }
+
+  double checkpoint1 = timestamp();
+  cout << "Loop 1: " << checkpoint1 - time << " | " << K * C * (4 * 3 * 5) * 2 << 
+    " | " << calc_mflops(checkpoint1 - time, K * C * (4 * 3 * 5) * 2) << endl;
 
   for (int c = 0; c < C; c++) {
     mat channel = image.slice(c);
@@ -93,6 +101,10 @@ void convolute(int K, int C, int H, int W, cube* filters, cube& image, cube& res
       }
     }
   }
+
+  double checkpoint2 = timestamp();
+  cout << "Loop 2: " << checkpoint2 - checkpoint1 << " | " << C * P * (4 * 4 * 7) * 2 <<
+    " | " << calc_mflops(checkpoint2 - checkpoint1, C * P * (4 * 4 * 7) * 2) << endl;
   
   for (int xi = 0; xi < alpha; xi++) {
     for (int nu = 0; nu < alpha; nu++) {
@@ -100,6 +112,10 @@ void convolute(int K, int C, int H, int W, cube* filters, cube& image, cube& res
       M[xi][nu] = U[xi][nu] * V[xi][nu];
     }
   }
+
+  double checkpoint3 = timestamp();
+  cout << "Loop 3: " << checkpoint3 - checkpoint2 << " | " << 16 * K * P * (2 * C - 1) <<
+    " | " << calc_mflops(checkpoint3 - checkpoint2, 16 * K * P * (2 * C - 1)) << endl;
 
   mat m_hold = zeros<mat>(alpha, alpha);
   for (int k = 0; k < K; k++) {
@@ -117,12 +133,38 @@ void convolute(int K, int C, int H, int W, cube* filters, cube& image, cube& res
     }
   }
 
+  // // Alternative access pattern, achieves ~150 mflops on the loop compared to ~250 mflops before
+  // for (int xi = 0; xi < alpha; xi++) {
+  //   for (int nu = 0; nu < alpha; nu++) {
+  //     mat m_curr = M[xi][nu];
+  //     for (int k = 0; k < K; k++) {
+  //       for (int b = 0; b < P; b++) {
+  //         M_hold[k][b](xi, nu) = m_curr(k, b);
+  //       }
+  //     }
+  //   }
+  // }
+
+  // for (int k = 0; k < K; k++) {
+  //   for (int y = 0; y < num_h_tiles; y++) {
+  //     for (int x = 0; x < num_w_tiles; x++) {
+  //       int b = gen_b(y,x);
+  //       result.slice(k)(span(y*m, (y+1)*m-1), span(x*m, (x+1)*m-1)) = A.t() * M_hold[k][b] * A;
+  //     }
+  //   }
+  // }
+
+  double checkpoint4 = timestamp();
+  cout << "Loop 4: " << checkpoint4 - checkpoint3 << " | " << K * P * (2 * 4 * 7) * 2 << 
+    " | " << calc_mflops(checkpoint4 - checkpoint3, K * P * (2 * 4 * 7) * 2) << endl;
+
   time = timestamp() - time;
   report_winograd_statistics(K, C, P, time);
 
   free_fourd_array(U, alpha);
   free_fourd_array(V, alpha);
   free_fourd_array(M, alpha);
+  // free_fourd_array(M_hold, K);
 }
 
 double timestamp()
