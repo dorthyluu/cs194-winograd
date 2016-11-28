@@ -51,7 +51,7 @@ __kernel void scatter(__global float *in,
         int d3,
         int d4)
 {
-  size_t i = get_global_id(0);
+  size_t i = get_global_id(0); // TODO: switch to int
   size_t j = get_global_id(1);
   if ((int) i < d3 && (int) j < d4) {
     for(int k = 0; k < d1; k++) {
@@ -105,5 +105,46 @@ __kernel void data_transform(__global float *data,
       }
     }
 
+  }
+}
+
+__kernel void calc_M (__global float *U,
+        __global float *V,
+        __global float *M,
+        int K,
+        int P,
+        int C,
+        int alpha)
+{
+  int k = get_global_id(0);
+  int b = get_global_id(1);
+  if (k < K && b < P) {
+
+    // int kblock = get_group_id(0);
+    // int bblock = get_group_id(1);
+
+    // int block_size_y = get_local_size(0);
+    // int block_size_x = get_local_size(1);
+
+    // int num_blocks_y = K / block_size_y;
+    // int num_blocks_x = P / block_size_x;
+
+    // int num_blocks = C / block_size;
+    float value;
+    for(int xi = 0; xi < alpha; xi++) {
+      for(int nu = 0; nu < alpha; nu++) {
+        value = 0;
+        for(int c = 0; c < C; c++) {
+          value += U[xi*(alpha*K*C) + nu*(K*C) + k*C + c] * V[xi*(alpha*C*P) + nu*(C*P) + c*P + b];
+        }
+        M[xi*(alpha*K*P) + nu*(K*P) + k*P + b] = value;
+        // for(int iblock = 0; iblock < num_blocks; iblock++) {
+        //   // copy things to local memory
+        //   for(int iloc = 0; iloc < block_size; iloc++) {
+        //     value += U_local[] * V_local[];
+        //   }
+        // }
+      }
+    }
   }
 }

@@ -23,11 +23,14 @@ int main(int argc, char *argv[])
   std::string filter_transform_name_str = std::string("filter_transform");
   std::string scatter_name_str = std::string("scatter");
   std::string data_transform_name_str = std::string("data_transform");
+  std::string calc_M_name_str = std::string("calc_M");
 
 
   kernel_names.push_back(filter_transform_name_str);
   kernel_names.push_back(scatter_name_str);
   kernel_names.push_back(data_transform_name_str);
+  kernel_names.push_back(calc_M_name_str);
+
 
   cl_vars_t cv; 
   
@@ -97,6 +100,7 @@ int main(int argc, char *argv[])
 
   float *U = new float[alpha*alpha*K*C];
   float *V = new float[alpha*alpha*C*P];
+  float *M = new float[alpha*alpha*K*P];
 
   // // Create empty output object
   // float **output = new float*[K];
@@ -104,7 +108,7 @@ int main(int argc, char *argv[])
   //   output[k] = new float[H*W]();  
   // }
 
-  cl_mem g_filters, g_data, g_G, g_B, g_U_temp, g_U, g_V_temp, g_V;
+  cl_mem g_filters, g_data, g_G, g_B, g_U_temp, g_U, g_V_temp, g_V, g_M;
 
   /* Create buffers on GPU. */
   cl_int err = CL_SUCCESS;
@@ -131,6 +135,9 @@ int main(int argc, char *argv[])
   CHK_ERR(err);
   g_V = clCreateBuffer(cv.context,CL_MEM_READ_WRITE,
            sizeof(float)*C*P*alpha*alpha,NULL,&err);
+  CHK_ERR(err);
+  g_M = clCreateBuffer(cv.context,CL_MEM_READ_WRITE,
+           sizeof(float)*K*P*alpha*alpha,NULL,&err);
   CHK_ERR(err);
 
   /* Copy data into buffers. */
@@ -343,6 +350,62 @@ int main(int argc, char *argv[])
   //   }
   // }
 
+  cl_kernel calc_M_kern = kernel_map[calc_M_name_str];
+
+  err = clSetKernelArg(calc_M_kern, 0, sizeof(cl_mem), &g_U);
+  CHK_ERR(err);
+  err = clSetKernelArg(calc_M_kern, 1, sizeof(cl_mem), &g_V);
+  CHK_ERR(err);
+  err = clSetKernelArg(calc_M_kern, 2, sizeof(cl_mem), &g_M);
+  CHK_ERR(err);
+  err = clSetKernelArg(calc_M_kern, 3, sizeof(int), &K);
+  CHK_ERR(err);
+  err = clSetKernelArg(calc_M_kern, 4, sizeof(int), &P);
+  CHK_ERR(err);
+  err = clSetKernelArg(calc_M_kern, 5, sizeof(int), &C);
+  CHK_ERR(err);
+  err = clSetKernelArg(calc_M_kern, 6, sizeof(int), &alpha);
+  CHK_ERR(err);
+
+  local_work_size[0] = 8;
+  local_work_size[1] = 8;
+  global_work_size[0] = K;
+  global_work_size[1] = P;
+
+  while (global_work_size[0] % local_work_size[0]) // omg fix
+    global_work_size[0] += 1;
+  while (global_work_size[1] % local_work_size[1])
+    global_work_size[0] += 1;
+
+  err = clEnqueueNDRangeKernel(cv.commands,
+         calc_M_kern,
+         2,//work_dim,
+         NULL, //global_work_offset
+         global_work_size, //global_work_size
+         local_work_size, //local_work_size
+         0, //num_events_in_wait_list
+         NULL, //event_wait_list
+         NULL //
+         );
+  CHK_ERR(err);
+
+  err = clEnqueueReadBuffer(cv.commands, g_M, true, 0, sizeof(float)*K*P*alpha*alpha,
+           M, 0, NULL, NULL);
+  CHK_ERR(err);
+
+  for(int i = 0; i < alpha; i++) {
+    for(int j = 0; j < alpha; j++) {
+      printf("%d %d\n", i, j);
+      for(int k = 0; k < K; k++) {
+        for(int b = 0; b < P; b++) {
+          int index = i*(alpha*K*P) + j*(K*P) + k*P + b;
+          printf("%.8f ", M[index]);
+        }
+        printf("\n");
+      }
+    }
+  }
+
   clReleaseMemObject(g_filters); 
   clReleaseMemObject(g_data);
   clReleaseMemObject(g_G);
@@ -351,6 +414,7 @@ int main(int argc, char *argv[])
   clReleaseMemObject(g_U);
   clReleaseMemObject(g_V_temp);
   clReleaseMemObject(g_V);
+  clReleaseMemObject(g_M);
 
   uninitialize_ocl(cv);
 
