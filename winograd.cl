@@ -31,7 +31,9 @@ __kernel void filter_transform(__global float *filters,
     }
 
     // U[k][c] = temp * G^T
-    offset = (k * C + c) * alpha * alpha;
+    int j_step = K*C;
+    int i_step = alpha*j_step;
+    offset = k*C + c;
     for(int i = 0; i < alpha; i++){
       for(int j = 0; j < alpha; j++) {
         sum = 0;
@@ -39,7 +41,7 @@ __kernel void filter_transform(__global float *filters,
           sum += temp[i*r + l] * G[j*r + l];
         }
         // U[offset + i*alpha + j] = sum;
-        U[i*(alpha*K*C) + j*(K*C) + k*C + c] = sum;
+        U[i*i_step + j*j_step + offset] = sum;
       }
     }
 
@@ -98,14 +100,16 @@ __kernel void data_transform(__global float *data,
       }
     }
 
-    // int offset = c*(P*alpha*alpha) + b*(alpha*alpha);
+    int j_step = C*P;
+    int i_step = alpha*j_step;
+    int offset = c*P + b;
     for(int i = 0; i < alpha; i++) {
       for(int j = 0; j < alpha; j++) {
         sum = 0;
         for(int l = 0; l < alpha; l++) {
           sum += temp[i*alpha + l] * B[l*alpha + j];
         }
-        V[i*(alpha*C*P) + j*(C*P) + c*P + b] = sum;
+        V[i*i_step + j*j_step + offset] = sum;
       }
     }
 

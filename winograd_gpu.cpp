@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
            sizeof(float)*alpha*m, A, 0, NULL, NULL);
   CHK_ERR(err);
 
-  // double time = timestamp();
+  double time = timestamp();
 
   /* Compute U. */
   cl_kernel filter_transform_kern = kernel_map[filter_transform_name_str];
@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
          );
   CHK_ERR(err);
 
-  double time = timestamp();
+  // double time = timestamp();
 
   cl_kernel calc_Y_kern = kernel_map[calc_Y_name_str];
 
