@@ -143,7 +143,7 @@ __kernel void calc_M (__global float *U,
         int kloc = get_local_id(0);
         int bloc = get_local_id(1);
         // EACH THREAD SHOULD JUST READ ONE ELEMENT
-        U_local[bloc*C + kloc] = U[xi*(alpha*K*C) + nu*(K*C) + k*C + bloc];
+        U_local[kloc*C + bloc] = U[xi*(alpha*K*C) + nu*(K*C) + k*C + bloc];
         V_local[kloc*C + bloc] = V[xi*(alpha*C*P) + nu*(C*P) + kloc*P + b];
 
         // probably want to transpose U local
@@ -152,21 +152,12 @@ __kernel void calc_M (__global float *U,
         value = 0;
         #pragma unroll
         for(int iloc = 0; iloc < C; iloc++) {
-          value += U_local[iloc*C + kloc] * V_local[iloc*C + bloc];
+          value += U_local[kloc*C + iloc] * V_local[iloc*C + bloc];
         }
 
         barrier(CLK_LOCAL_MEM_FENCE);
 
         M[xi*(alpha*K*P) + nu*(K*P) + k*P + b] = value;
-        
-        // naive
-        // float value1;
-        // value1 = 0;
-        // for(int c = 0; c < C; c++) {
-        //   value1 += U[xi*(alpha*K*C) + nu*(K*C) + k*C + c] * V[xi*(alpha*C*P) + nu*(C*P) + c*P + b];
-        // }
-        // printf("%.5f %.5f\n", value, value1);
-        // M[xi*(alpha*K*P) + nu*(K*P) + k*P + b] = value1;
       }
     }
   }
