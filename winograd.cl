@@ -1,7 +1,7 @@
 /* Computes G . filter . G^T for every filter in filters.
  * Write the output into U, which has not been scattered yet. */
 __kernel void filter_transform(__global float *filters,
-        __global float *G,
+        __constant float *G,
         __global float *U,
         int K,
         int C,
@@ -74,7 +74,7 @@ __kernel void scatter(__global float *in,
 }
 
 __kernel void data_transform(__global float *data,
-        __global float *B,
+        __constant float *B,
         __global float *V,
         int C,
         int P,
@@ -161,7 +161,7 @@ __kernel void calc_M (__global float *U,
 }
 
 __kernel void calc_Y(__global float *M,
-        __global float *A,
+        __constant float *A,
         __global float *Y,
         int out_H,
         int out_W,
