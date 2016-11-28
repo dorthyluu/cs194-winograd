@@ -36,9 +36,20 @@ __kernel void filter_transform(__global float *filters,
         for(int l = 0; l < r; l++) {
           sum += temp[i*r + l] * G[j*r + l];
         }
-        U[offset + i*alpha + j] = sum;
+        // U[offset + i*alpha + j] = sum;
+        U[i*(alpha*K*C) + j*(K*C) + k*C + c] = sum;
       }
     }
+
+    // for(int xi = 0; xi < alpha; xi++) {
+    //   for(int nu = 0; nu < alpha; nu++) {
+    //     U[xi*(alpha*K*C) + nu*(K*C) + k*C + c] = temp_u[xi*alpha + nu];
+    //   }
+    // }
+
+    // for xi in range(alpha):
+    //         for nu in range(alpha):
+    //             U[xi][nu][k][c] = u[xi][nu]
   }
 }
 
