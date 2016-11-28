@@ -9,7 +9,7 @@ def gen_problem(K, C, H, W):
 		filters.append(current_filter)
 		for j in range(C):
 			current_filter.append(np.random.rand(3, 3))
-	return filters, np.random.rand(H, W)
+	return filters, np.random.rand(C, H, W)
 
 if __name__ == "__main__":
 	K = 2
@@ -35,7 +35,8 @@ if __name__ == "__main__":
 
 	print("\n\n")
 
-	for row in data:
-		print(" ".join([str(el) for el in row]))
-	print("\n")
+	for channel in data:
+		for row in channel:
+			print(" ".join([str(el) for el in row]))
+		print("\n")
 
