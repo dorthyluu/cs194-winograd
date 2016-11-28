@@ -29,8 +29,8 @@ all: $(OBJS)
 endif
 
 clean:
+	rm -rf $(OBJS) winograd_gpu
 	rm winograd
-	rm winograd_gpu
 	rm naive_convolution
 	rm *.in
 	rm *.out
