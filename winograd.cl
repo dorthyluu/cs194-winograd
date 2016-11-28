@@ -1,7 +1,9 @@
+#define block_size 8
+
 /* Computes G . filter . G^T for every filter in filters.
  * Write the output into U, which has not been scattered yet. */
 __kernel void filter_transform(__global float *filters,
-        __global float *G,
+        __global float *G, // TODO: put G in local memory
         __global float *U,
         int K,
         int C,
@@ -74,7 +76,7 @@ __kernel void scatter(__global float *in,
 }
 
 __kernel void data_transform(__global float *data,
-        __global float *B,
+        __global float *B, // TODO: put B in local memory
         __global float *V,
         int C,
         int P,
@@ -105,7 +107,7 @@ __kernel void data_transform(__global float *data,
       }
     }
 
-    int offset = c*(P*alpha*alpha) + b*(alpha*alpha);
+    // int offset = c*(P*alpha*alpha) + b*(alpha*alpha);
     for(int i = 0; i < alpha; i++) {
       for(int j = 0; j < alpha; j++) {
         sum = 0;
@@ -120,41 +122,51 @@ __kernel void data_transform(__global float *data,
 }
 
 __kernel void calc_M (__global float *U,
-        __global float *V,
+        __global float *V, // should store transpose of V so it's faster
         __global float *M,
         int K,
         int P,
         int C,
-        int alpha)
+        int alpha,
+        __local float *U_local,
+        __local float *V_local)
 {
   int k = get_global_id(0);
   int b = get_global_id(1);
   if (k < K && b < P) {
 
-    // int kblock = get_group_id(0);
-    // int bblock = get_group_id(1);
-
-    // int block_size_y = get_local_size(0);
-    // int block_size_x = get_local_size(1);
-
-    // int num_blocks_y = K / block_size_y;
-    // int num_blocks_x = P / block_size_x;
-
-    // int num_blocks = C / block_size;
+    // U local is C by C and V local is C by C // only works if C is small
     float value;
     for(int xi = 0; xi < alpha; xi++) {
       for(int nu = 0; nu < alpha; nu++) {
+
+        int kloc = get_local_id(0);
+        int bloc = get_local_id(1);
+        // EACH THREAD SHOULD JUST READ ONE ELEMENT
+        U_local[bloc*C + kloc] = U[xi*(alpha*K*C) + nu*(K*C) + k*C + bloc];
+        V_local[kloc*C + bloc] = V[xi*(alpha*C*P) + nu*(C*P) + kloc*P + b];
+
+        // probably want to transpose U local
+        barrier(CLK_LOCAL_MEM_FENCE);
+
         value = 0;
-        for(int c = 0; c < C; c++) {
-          value += U[xi*(alpha*K*C) + nu*(K*C) + k*C + c] * V[xi*(alpha*C*P) + nu*(C*P) + c*P + b];
+        #pragma unroll
+        for(int iloc = 0; iloc < C; iloc++) {
+          value += U_local[iloc*C + kloc] * V_local[iloc*C + bloc];
         }
+
+        barrier(CLK_LOCAL_MEM_FENCE);
+
         M[xi*(alpha*K*P) + nu*(K*P) + k*P + b] = value;
-        // for(int iblock = 0; iblock < num_blocks; iblock++) {
-        //   // copy things to local memory
-        //   for(int iloc = 0; iloc < block_size; iloc++) {
-        //     value += U_local[] * V_local[];
-        //   }
+        
+        // naive
+        // float value1;
+        // value1 = 0;
+        // for(int c = 0; c < C; c++) {
+        //   value1 += U[xi*(alpha*K*C) + nu*(K*C) + k*C + c] * V[xi*(alpha*C*P) + nu*(C*P) + c*P + b];
         // }
+        // printf("%.5f %.5f\n", value, value1);
+        // M[xi*(alpha*K*P) + nu*(K*P) + k*P + b] = value1;
       }
     }
   }

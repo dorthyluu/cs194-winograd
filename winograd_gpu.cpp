@@ -386,11 +386,15 @@ int main(int argc, char *argv[])
   CHK_ERR(err);
   err = clSetKernelArg(calc_M_kern, 6, sizeof(int), &alpha);
   CHK_ERR(err);
+  err = clSetKernelArg(calc_M_kern, 7, sizeof(float)*C*C, NULL);
+  CHK_ERR(err);
+  err = clSetKernelArg(calc_M_kern, 8, sizeof(float)*C*C, NULL);
+  CHK_ERR(err);
 
-  local_work_size[0] = 8;
-  local_work_size[1] = 8;
-  global_work_size[0] = (K+8)/8*8;
-  global_work_size[1] = (P+8)/8*8;
+  local_work_size[0] = C;
+  local_work_size[1] = C;
+  global_work_size[0] = (K+C)/C*C;
+  global_work_size[1] = (P+C)/C*C;
 
   // while (global_work_size[0] % local_work_size[0]) // omg fix
   //   global_work_size[0] += 1;
