@@ -43,15 +43,6 @@ __kernel void filter_transform(__global float *filters,
       }
     }
 
-    // for(int xi = 0; xi < alpha; xi++) {
-    //   for(int nu = 0; nu < alpha; nu++) {
-    //     U[xi*(alpha*K*C) + nu*(K*C) + k*C + c] = temp_u[xi*alpha + nu];
-    //   }
-    // }
-
-    // for xi in range(alpha):
-    //         for nu in range(alpha):
-    //             U[xi][nu][k][c] = u[xi][nu]
   }
 }
 
@@ -135,13 +126,14 @@ __kernel void calc_M (__global float *U,
   int b = get_global_id(1);
   if (k < K && b < P) {
 
+    int kloc = get_local_id(0);
+    int bloc = get_local_id(1);
+
     // U local is C by C and V local is C by C // only works if C is small
     float value;
     for(int xi = 0; xi < alpha; xi++) {
       for(int nu = 0; nu < alpha; nu++) {
 
-        int kloc = get_local_id(0);
-        int bloc = get_local_id(1);
         // EACH THREAD SHOULD JUST READ ONE ELEMENT
         U_local[kloc*C + bloc] = U[xi*(alpha*K*C) + nu*(K*C) + k*C + bloc];
         V_local[kloc*C + bloc] = V[xi*(alpha*C*P) + nu*(C*P) + kloc*P + b];
