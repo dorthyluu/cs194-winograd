@@ -10,6 +10,13 @@
 
 using namespace std;
 
+// double timestamp()
+// {
+//   struct timeval tv;m
+//   gettimeofday (&tv, 0);
+//   return tv.tv_sec + 1e-6*tv.tv_usec;
+// }
+
 int main(int argc, char *argv[])
 {
   std::string kernel_source_str;
@@ -170,6 +177,8 @@ int main(int argc, char *argv[])
   err = clEnqueueWriteBuffer(cv.commands, g_A, true, 0,
            sizeof(float)*alpha*m, A, 0, NULL, NULL);
   CHK_ERR(err);
+
+  double time = timestamp();
 
   /* Compute U. */
   cl_kernel filter_transform_kern = kernel_map[filter_transform_name_str];
@@ -460,6 +469,13 @@ int main(int argc, char *argv[])
          NULL //
          );
   CHK_ERR(err);
+
+  err = clFinish(cv.commands);
+  CHK_ERR(err);
+
+  time = timestamp() - time;
+
+  cout << "Time Elapsed: " << time << "\n";
 
   err = clEnqueueReadBuffer(cv.commands, g_Y, true, 0, sizeof(float)*K*out_H*out_W,
            Y, 0, NULL, NULL);
