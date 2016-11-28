@@ -112,7 +112,7 @@ __kernel void data_transform(__global float *data,
         for(int l = 0; l < alpha; l++) {
           sum += temp[i*alpha + l] * B[l*alpha + j];
         }
-        V[offset + i*alpha + j] = sum;
+        V[i*(alpha*C*P) + j*(C*P) + c*P + b] = sum;
       }
     }
 

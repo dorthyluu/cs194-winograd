@@ -117,13 +117,7 @@ int main(int argc, char *argv[])
   float *M = new float[alpha*alpha*K*P];
   float *Y = new float[K*out_H*out_W];
 
-  // // Create empty output object
-  // float **output = new float*[K];
-  // for (int k = 0; k < K; k++) {
-  //   output[k] = new float[H*W]();  
-  // }
-
-  cl_mem g_filters, g_data, g_G, g_B, g_A, g_U_temp, g_U, g_V_temp, g_V, g_M, g_Y;
+  cl_mem g_filters, g_data, g_G, g_B, g_A, g_U, g_V, g_M, g_Y;
 
   /* Create buffers on GPU. */
   cl_int err = CL_SUCCESS;
@@ -142,15 +136,15 @@ int main(int argc, char *argv[])
   g_A = clCreateBuffer(cv.context,CL_MEM_READ_WRITE,
            sizeof(float)*alpha*m,NULL,&err);
   CHK_ERR(err);
-  g_U_temp = clCreateBuffer(cv.context,CL_MEM_READ_WRITE,
-           sizeof(float)*K*C*alpha*alpha,NULL,&err);
-  CHK_ERR(err);
+  // g_U_temp = clCreateBuffer(cv.context,CL_MEM_READ_WRITE,
+  //          sizeof(float)*K*C*alpha*alpha,NULL,&err);
+  // CHK_ERR(err);
   g_U = clCreateBuffer(cv.context,CL_MEM_READ_WRITE,
            sizeof(float)*K*C*alpha*alpha,NULL,&err);
   CHK_ERR(err);
-  g_V_temp = clCreateBuffer(cv.context,CL_MEM_READ_WRITE,
-           sizeof(float)*C*P*alpha*alpha,NULL,&err); // ONLY NEED ONE TEMP!! THE BIGGER ONE
-  CHK_ERR(err);
+  // g_V_temp = clCreateBuffer(cv.context,CL_MEM_READ_WRITE,
+  //          sizeof(float)*C*P*alpha*alpha,NULL,&err); // ONLY NEED ONE TEMP!! THE BIGGER ONE
+  // CHK_ERR(err);
   g_V = clCreateBuffer(cv.context,CL_MEM_READ_WRITE,
            sizeof(float)*C*P*alpha*alpha,NULL,&err);
   CHK_ERR(err);
@@ -231,7 +225,7 @@ int main(int argc, char *argv[])
   // }
 
   // /* Scatter U into its appropriate form. */
-  cl_kernel scatter_kern = kernel_map[scatter_name_str];
+  // cl_kernel scatter_kern = kernel_map[scatter_name_str];
 
   // err = clSetKernelArg(scatter_kern, 0, sizeof(cl_mem), &g_U_temp);
   // CHK_ERR(err);
@@ -246,10 +240,10 @@ int main(int argc, char *argv[])
   // err = clSetKernelArg(scatter_kern, 5, sizeof(int), &alpha);
   // CHK_ERR(err);
 
-  global_work_size[0] = alpha;
-  global_work_size[1] = alpha;
-  local_work_size[0] = alpha;
-  local_work_size[1] = alpha;
+  // global_work_size[0] = alpha;
+  // global_work_size[1] = alpha;
+  // local_work_size[0] = alpha;
+  // local_work_size[1] = alpha;
 
   // err = clEnqueueNDRangeKernel(cv.commands,
   //        scatter_kern,
@@ -263,22 +257,22 @@ int main(int argc, char *argv[])
   //        );
   // CHK_ERR(err);
 
-  err = clEnqueueReadBuffer(cv.commands, g_U, true, 0, sizeof(float)*K*C*alpha*alpha,
-           U, 0, NULL, NULL);
-  CHK_ERR(err);
+  // err = clEnqueueReadBuffer(cv.commands, g_U, true, 0, sizeof(float)*K*C*alpha*alpha,
+  //          U, 0, NULL, NULL);
+  // CHK_ERR(err);
 
-  for(int i = 0; i < alpha; i++) {
-    for(int j = 0; j < alpha; j++) {
-      printf("%d %d\n", i, j);
-      for(int k = 0; k < K; k++) {
-        for(int c = 0; c < C; c++) {
-          int index = i*(alpha*K*C) + j*(K*C) + k*C + c;
-          printf("%.8f ", U[index]);
-        }
-        printf("\n");
-      }
-    }
-  }
+  // for(int i = 0; i < alpha; i++) {
+  //   for(int j = 0; j < alpha; j++) {
+  //     printf("%d %d\n", i, j);
+  //     for(int k = 0; k < K; k++) {
+  //       for(int c = 0; c < C; c++) {
+  //         int index = i*(alpha*K*C) + j*(K*C) + k*C + c;
+  //         printf("%.8f ", U[index]);
+  //       }
+  //       printf("\n");
+  //     }
+  //   }
+  // }
 
   /* Compute V. */
   cl_kernel data_transform_kern = kernel_map[data_transform_name_str];
@@ -287,7 +281,7 @@ int main(int argc, char *argv[])
   CHK_ERR(err);
   err = clSetKernelArg(data_transform_kern, 1, sizeof(cl_mem), &g_B);
   CHK_ERR(err);
-  err = clSetKernelArg(data_transform_kern, 2, sizeof(cl_mem), &g_V_temp);
+  err = clSetKernelArg(data_transform_kern, 2, sizeof(cl_mem), &g_V);
   CHK_ERR(err);
   err = clSetKernelArg(data_transform_kern, 3, sizeof(int), &C);
   CHK_ERR(err);
@@ -334,30 +328,30 @@ int main(int argc, char *argv[])
   //   }
   // }
 
-  err = clSetKernelArg(scatter_kern, 0, sizeof(cl_mem), &g_V_temp);
-  CHK_ERR(err);
-  err = clSetKernelArg(scatter_kern, 1, sizeof(cl_mem), &g_V);
-  CHK_ERR(err);
-  err = clSetKernelArg(scatter_kern, 2, sizeof(int), &C);
-  CHK_ERR(err);
-  err = clSetKernelArg(scatter_kern, 3, sizeof(int), &P);
-  CHK_ERR(err);
-  err = clSetKernelArg(scatter_kern, 4, sizeof(int), &alpha);
-  CHK_ERR(err);
-  err = clSetKernelArg(scatter_kern, 5, sizeof(int), &alpha);
-  CHK_ERR(err);
+  // err = clSetKernelArg(scatter_kern, 0, sizeof(cl_mem), &g_V_temp);
+  // CHK_ERR(err);
+  // err = clSetKernelArg(scatter_kern, 1, sizeof(cl_mem), &g_V);
+  // CHK_ERR(err);
+  // err = clSetKernelArg(scatter_kern, 2, sizeof(int), &C);
+  // CHK_ERR(err);
+  // err = clSetKernelArg(scatter_kern, 3, sizeof(int), &P);
+  // CHK_ERR(err);
+  // err = clSetKernelArg(scatter_kern, 4, sizeof(int), &alpha);
+  // CHK_ERR(err);
+  // err = clSetKernelArg(scatter_kern, 5, sizeof(int), &alpha);
+  // CHK_ERR(err);
 
-  err = clEnqueueNDRangeKernel(cv.commands,
-         scatter_kern,
-         2,//work_dim,
-         NULL, //global_work_offset
-         global_work_size, //global_work_size
-         local_work_size, //local_work_size
-         0, //num_events_in_wait_list
-         NULL, //event_wait_list
-         NULL //
-         );
-  CHK_ERR(err);
+  // err = clEnqueueNDRangeKernel(cv.commands,
+  //        scatter_kern,
+  //        2,//work_dim,
+  //        NULL, //global_work_offset
+  //        global_work_size, //global_work_size
+  //        local_work_size, //local_work_size
+  //        0, //num_events_in_wait_list
+  //        NULL, //event_wait_list
+  //        NULL //
+  //        );
+  // CHK_ERR(err);
 
   // err = clEnqueueReadBuffer(cv.commands, g_V, true, 0, sizeof(float)*C*P*alpha*alpha,
   //          V, 0, NULL, NULL);
@@ -395,13 +389,13 @@ int main(int argc, char *argv[])
 
   local_work_size[0] = 8;
   local_work_size[1] = 8;
-  global_work_size[0] = K;
-  global_work_size[1] = P;
+  global_work_size[0] = (K+8)/8*8;
+  global_work_size[1] = (P+8)/8*8;
 
-  while (global_work_size[0] % local_work_size[0]) // omg fix
-    global_work_size[0] += 1;
-  while (global_work_size[1] % local_work_size[1])
-    global_work_size[0] += 1;
+  // while (global_work_size[0] % local_work_size[0]) // omg fix
+  //   global_work_size[0] += 1;
+  // while (global_work_size[1] % local_work_size[1])
+  //   global_work_size[0] += 1;
 
   err = clEnqueueNDRangeKernel(cv.commands,
          calc_M_kern,
@@ -497,9 +491,9 @@ int main(int argc, char *argv[])
   clReleaseMemObject(g_G);
   clReleaseMemObject(g_B);
   clReleaseMemObject(g_A);
-  clReleaseMemObject(g_U_temp);
+  // clReleaseMemObject(g_U_temp);
   clReleaseMemObject(g_U);
-  clReleaseMemObject(g_V_temp);
+  // clReleaseMemObject(g_V_temp);
   clReleaseMemObject(g_V);
   clReleaseMemObject(g_M);
   clReleaseMemObject(g_Y);
