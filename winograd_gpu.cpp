@@ -328,7 +328,7 @@ int main(int argc, char *argv[])
          3,//work_dim,
          NULL, //global_work_offset
          global_work_size_V, //global_work_size
-         global_work_size_V, //local_work_size
+         local_work_size_V, //local_work_size
          0, //num_events_in_wait_list
          NULL, //event_wait_list
          NULL //
@@ -340,7 +340,7 @@ int main(int argc, char *argv[])
          2,//work_dim,
          NULL, //global_work_offset
          global_work_size_M, //global_work_size
-         global_work_size_M, //local_work_size
+         local_work_size_M, //local_work_size
          0, //num_events_in_wait_list
          NULL, //event_wait_list
          NULL //
@@ -352,7 +352,7 @@ int main(int argc, char *argv[])
          3,//work_dim,
          NULL, //global_work_offset
          global_work_size_Y, //global_work_size
-         global_work_size_Y, //local_work_size     // this is not scalable
+         local_work_size_Y, //local_work_size     // this is not scalable
          0, //num_events_in_wait_list
          NULL, //event_wait_list
          NULL //
