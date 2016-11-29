@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
   size_t local_work_size_V[3] = {C, fmin(num_w_tiles, 4), fmin(num_w_tiles, 4)};
 
   /* Calculating M. */
-  int local_M = 4; // can change to 2
+  int local_M = 8; // can change to 2
   size_t global_work_size_M[2] = {(K+local_M)/local_M*local_M, (P+local_M)/local_M*local_M};
   size_t local_work_size_M[2] = {local_M, local_M};
 
