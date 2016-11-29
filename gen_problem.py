@@ -35,7 +35,8 @@ if __name__ == "__main__":
 
 	print("\n\n")
 
-	for row in data:
-		print(" ".join([str(el) for el in row]))
-	print("\n")
+	for channel in data:
+		for row in channel:
+			print(" ".join([str(el) for el in row]))
+		print("\n")
 
