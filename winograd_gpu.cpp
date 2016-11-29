@@ -19,6 +19,17 @@ bool power_of_two(int x) {
   return ((x & (x-1)) == 0);
 }
 
+void report_winograd_statistics(int K, int C, int P, double time) {
+  int flop = (K * C * (4 * 3 * 5) * 2 +
+              C * P * (4 * 4 * 7) * 2 + 
+              16 * K * P * (2 * C - 1) + 
+              K * P * (2 * 4 * 7) * 2);
+  double mflops = flop / (1024.0 * 1024.0 * time);
+  cout << "Floating point operations: " << flop << "\n";
+  cout << "Time Elapsed: " << time << "\n";
+  cout << "MFlop/s: " << mflops << "\n";
+}
+
 int main(int argc, char *argv[])
 {
   if (argc != 3) {
@@ -364,8 +375,12 @@ int main(int argc, char *argv[])
 
   time = timestamp() - time;
 
-  cout << "Time Elapsed: " << time << "\n";
+  /* Report timing and Mflop/s */
+  // cout << "Time Elapsed: " << time << "\n";
+  report_winograd_statistics(K, C, P, time);
 
+
+  /* Write output to specified file. */
   err = clEnqueueReadBuffer(cv.commands, g_Y, true, 0, sizeof(float)*K*out_H*out_W,
            Y, 0, NULL, NULL);
   CHK_ERR(err);
@@ -378,7 +393,7 @@ int main(int argc, char *argv[])
     for(int i = 0; i < out_H; i++) {
       for(int j = 0; j < out_W; j++) {
         int index = k*(out_H*out_W) + i*out_W + j;
-        fileout << "   " << std::fixed << std::setw( 5 ) << std::setprecision( 4 ) << Y[index];
+        fileout << "   " << std::fixed << std::setw(5) << std::setprecision(4) << Y[index];
       }
       fileout << "\n";
     }
@@ -402,10 +417,7 @@ int main(int argc, char *argv[])
 
   delete[] filters;
   delete[] data;
+  delete[] Y;
   return 0;
-
-  // status: write V transform kernel but data input format is wrong (need three channels for the image), cannot test yet
-
-
 
 }
