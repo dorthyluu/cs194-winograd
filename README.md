@@ -34,5 +34,5 @@
 
 ## Benchmarks
 - `./bench_image_size.sh`
-- `./extract_perf.py` will extract MFlop/s to `bench_extract.csv`.
+- `./extract_perf.py BENCHMARK_FILE` will extract MFlop/s and times to `bench_extract_mflops.csv` and `bench_extract_times.csv`.
 - NOTE: The benchmark creates many `.in` input files that may take up a lot of disk space. Make sure disk quota does not fill up during benchmarking.
