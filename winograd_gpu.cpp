@@ -49,8 +49,6 @@ int main(int argc, char *argv[])
   bool valid = true;
   if (C % 2 != 0 && C % 3 != 0)
     valid = false;
-  if (K % 8 != 0)
-    valid = false;
   if (!power_of_two(H-2))
     valid = false;
   if (!power_of_two(W-2))
@@ -58,7 +56,6 @@ int main(int argc, char *argv[])
   if (!valid) {
     cout << "Please make sure that:\n";
     cout << "C (# channels) is a multiple of 2 or 3\n";
-    cout << "K (# filters) is a multiple of 8\n";
     cout << "H (height of image) minus 2 is a power of 2\n";
     cout << "W (width of image) minus 2 is a power of 2\n";
     file.close();
@@ -207,7 +204,7 @@ int main(int argc, char *argv[])
   /* Compute global and local work sizes for the following: */
 
   /* Filter transform, which calculates U. */
-  size_t global_work_size_U[2] = {K, C};
+  size_t global_work_size_U[2] = {(K+8)/8*8, C};
   size_t local_work_size_U[2] = {fmin(K, 8), C};
 
   /* Data transform, which calculates V. */
@@ -220,7 +217,7 @@ int main(int argc, char *argv[])
   size_t local_work_size_M[2] = {local_M, local_M};
 
   /* Calculating Y. */
-  size_t global_work_size_Y[3] = {K, num_h_tiles, num_w_tiles};
+  size_t global_work_size_Y[3] = {(K+2)/2*2, num_h_tiles, num_w_tiles};
   size_t local_work_size_Y[3] = {fmin(K, 2), fmin(num_w_tiles, 8), fmin(num_w_tiles, 8)};
 
   /* Get the compiled kernels. */
