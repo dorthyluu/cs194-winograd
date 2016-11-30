@@ -1,19 +1,22 @@
 #!/usr/bin/python3
 # Parses benchmark output and writes a CSV file.
-# Refer to bench_image_size.sh for which programs run
+# Refer to bench_image_*.sh for which programs run
 
 import sys
 
 LINES_PER_BENCH = 3 # num. lines from each program
 BENCH_PER_SIZE = 4 # num. benchmarks for each H/W size
 
-BENCH_TEXT_NAME = "bench_image_size.txt"
+argc = len(sys.argv)
+if (argc != 2):
+  print("Usage: extract_perf.py BENCHMARK_OUTPUT")
+  sys.exit(-1)
 
 # skip header line
-lines = open(BENCH_TEXT_NAME).read().split("\n")[1:]
+lines = open(sys.argv[1]).read().split("\n")[1:]
 
 out = open("bench_extract.csv", "w+")
-out.write("K,C,H,W,naive,winograd,winograd_openmp,winograd_gpu")
+out.write("K,C,H,W,naive,winograd,winograd_openmp,winograd_gpu\n")
 
 index = 0
 while index < len(lines) - 1:
