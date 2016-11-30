@@ -11,9 +11,11 @@
 
 using namespace std;
 
-/* We are using 3 x 3 filters and an output tile size of 2 x 2. */ // will need to define these in kernels too
-// #define m 2
-// #define r 3
+/* We are using 3 x 3 filters and an output tile size of 2 x 2. 
+ * alpha = m + r - 1 = 4 */
+#define m 2
+#define r 3
+#define alpha 4
 
 /* Returns the next number greater than or equal to global_size that is a 
  * multiple of local_size.*/
@@ -64,9 +66,9 @@ int main(int argc, char *argv[])
     return 0;
   }
   // TODO: m, r, and alpha should be in header file
-  int m = 2;
-  int r = 3;
-  int alpha = m + r - 1;
+  // int m = 2;
+  // int r = 3;
+  // int alpha = m + r - 1;
   int out_H = H - r + 1;
   int out_W = W - r + 1;
   int num_h_tiles = ceil(out_H/m);
@@ -241,10 +243,10 @@ int main(int argc, char *argv[])
   CHK_ERR(err);
   err = clSetKernelArg(filter_transform_kern, 4, sizeof(int), &C);
   CHK_ERR(err);
-  err = clSetKernelArg(filter_transform_kern, 5, sizeof(int), &r);
-  CHK_ERR(err);
-  err = clSetKernelArg(filter_transform_kern, 6, sizeof(int), &alpha);
-  CHK_ERR(err);
+  // err = clSetKernelArg(filter_transform_kern, 5, sizeof(int), &r);
+  // CHK_ERR(err);
+  // err = clSetKernelArg(filter_transform_kern, 6, sizeof(int), &alpha);
+  // CHK_ERR(err);
 
   err = clSetKernelArg(data_transform_kern, 0, sizeof(cl_mem), &g_data);
   CHK_ERR(err);
@@ -260,13 +262,13 @@ int main(int argc, char *argv[])
   CHK_ERR(err);
   err = clSetKernelArg(data_transform_kern, 6, sizeof(int), &W);
   CHK_ERR(err);
-  err = clSetKernelArg(data_transform_kern, 7, sizeof(int), &m);
+  // err = clSetKernelArg(data_transform_kern, 7, sizeof(int), &m);
+  // CHK_ERR(err);
+  // err = clSetKernelArg(data_transform_kern, 8, sizeof(int), &alpha);
+  // CHK_ERR(err);
+  err = clSetKernelArg(data_transform_kern, 7, sizeof(int), &num_h_tiles);
   CHK_ERR(err);
-  err = clSetKernelArg(data_transform_kern, 8, sizeof(int), &alpha);
-  CHK_ERR(err);
-  err = clSetKernelArg(data_transform_kern, 9, sizeof(int), &num_h_tiles);
-  CHK_ERR(err);
-  err = clSetKernelArg(data_transform_kern, 10, sizeof(int), &num_w_tiles);
+  err = clSetKernelArg(data_transform_kern, 8, sizeof(int), &num_w_tiles);
   CHK_ERR(err);
 
   err = clSetKernelArg(calc_M_kern, 0, sizeof(cl_mem), &g_U);
@@ -281,8 +283,8 @@ int main(int argc, char *argv[])
   CHK_ERR(err);
   err = clSetKernelArg(calc_M_kern, 5, sizeof(int), &C);
   CHK_ERR(err);
-  err = clSetKernelArg(calc_M_kern, 6, sizeof(int), &alpha);
-  CHK_ERR(err);
+  // err = clSetKernelArg(calc_M_kern, 6, sizeof(int), &alpha);
+  // CHK_ERR(err);
 
   err = clSetKernelArg(calc_Y_kern, 0, sizeof(cl_mem), &g_M);
   CHK_ERR(err);
@@ -298,13 +300,13 @@ int main(int argc, char *argv[])
   CHK_ERR(err);
   err = clSetKernelArg(calc_Y_kern, 6, sizeof(int), &P);
   CHK_ERR(err);
-  err = clSetKernelArg(calc_Y_kern, 7, sizeof(int), &m);
+  // err = clSetKernelArg(calc_Y_kern, 7, sizeof(int), &m);
+  // CHK_ERR(err);
+  // err = clSetKernelArg(calc_Y_kern, 8, sizeof(int), &alpha);
+  // CHK_ERR(err);
+  err = clSetKernelArg(calc_Y_kern, 7, sizeof(int), &num_h_tiles);
   CHK_ERR(err);
-  err = clSetKernelArg(calc_Y_kern, 8, sizeof(int), &alpha);
-  CHK_ERR(err);
-  err = clSetKernelArg(calc_Y_kern, 9, sizeof(int), &num_h_tiles);
-  CHK_ERR(err);
-  err = clSetKernelArg(calc_Y_kern, 10, sizeof(int), &num_w_tiles);
+  err = clSetKernelArg(calc_Y_kern, 8, sizeof(int), &num_w_tiles);
   CHK_ERR(err);
 
   /* Start recording time for benchmarking. */

@@ -1,12 +1,16 @@
+/* We are using 3 x 3 filters and an output tile size of 2 x 2. 
+ * alpha = m + r - 1 = 4 */
+#define m 2
+#define r 3
+#define alpha 4
+
 /* For the filter g located at FILTERS[k][c], computes the transformation
  * u = G * g * G^T. Then, catters each matrix u into the output U. */
 __kernel void filter_transform(__global float *filters,
         __constant float *G,
         __global float *U,
         int K,
-        int C,
-        int r,
-        int alpha)
+        int C)
 {
 
   size_t k = get_global_id(0);
@@ -53,8 +57,6 @@ __kernel void data_transform(__global float *data,
         int P,
         int H,
         int W,
-        int m,
-        int alpha,
         int num_h_tiles,
         int num_w_tiles)
 {
@@ -109,8 +111,7 @@ __kernel void calc_M (__global float *U,
         __global float *M,
         int K,
         int P,
-        int C,
-        int alpha)
+        int C)
 {
   int k = get_global_id(0);
   int b = get_global_id(1);
@@ -137,8 +138,6 @@ __kernel void calc_Y(__global float *M,
         int out_W,
         int K,
         int P,
-        int m,
-        int alpha,
         int num_h_tiles,
         int num_w_tiles)
 {
