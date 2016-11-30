@@ -1,0 +1,158 @@
+K C H W
+64 1 512 512
+Floating point operations: 301989888
+Time Elapsed: 0.164887
+MFlop/s: 1746.65
+Floating point operations: 547258080
+Time Elapsed: 1.94733
+MFlop/s: 268.011
+Floating point operations: 547258080
+Time Elapsed: 0.606739
+MFlop/s: 860.182
+Floating point operations: 547258080
+Time Elapsed: 0.100943
+MFlop/s: 5170.31
+64 2 512 512
+Floating point operations: 603979776
+Time Elapsed: 0.332735
+MFlop/s: 1731.11
+Floating point operations: 695002560
+Time Elapsed: 1.96536
+MFlop/s: 337.245
+Floating point operations: 695002560
+Time Elapsed: 0.595812
+MFlop/s: 1112.44
+Floating point operations: 695002560
+Time Elapsed: 0.106109
+MFlop/s: 6246.46
+64 4 512 512
+Floating point operations: 1207959552
+Time Elapsed: 0.660064
+MFlop/s: 1745.29
+Floating point operations: 990491520
+Time Elapsed: 1.98439
+MFlop/s: 476.018
+Floating point operations: 990491520
+Time Elapsed: 0.61827
+MFlop/s: 1527.82
+Floating point operations: 990491520
+Time Elapsed: 0.130025
+MFlop/s: 7264.8
+64 8 512 512
+Floating point operations: -1879048192
+Time Elapsed: 1.3331
+MFlop/s: -1344.24
+Floating point operations: 1581469440
+Time Elapsed: 2.08099
+MFlop/s: 724.753
+Floating point operations: 1581469440
+Time Elapsed: 0.695107
+MFlop/s: 2169.75
+Floating point operations: 1581469440
+Time Elapsed: 0.180359
+MFlop/s: 8362.25
+64 16 512 512
+Floating point operations: 536870912
+Time Elapsed: 2.634
+MFlop/s: 194.381
+Floating point operations: -1531542016
+Time Elapsed: 2.2717
+MFlop/s: -642.95
+Floating point operations: -1531542016
+Time Elapsed: 0.738316
+MFlop/s: -1978.28
+Floating point operations: -1531542016
+Time Elapsed: 0.307934
+MFlop/s: -4743.2
+64 32 512 512
+Floating point operations: 1073741824
+Time Elapsed: 5.24928
+MFlop/s: 195.074
+Floating point operations: 832369664
+Time Elapsed: 2.60492
+MFlop/s: 304.734
+Floating point operations: 832369664
+Time Elapsed: 0.888176
+MFlop/s: 893.753
+Floating point operations: 832369664
+Time Elapsed: 0.796263
+MFlop/s: 996.919
+K C H W
+64 1 512 512
+Floating point operations: 301989888
+Time Elapsed: 0.164142
+MFlop/s: 1754.58
+Floating point operations: 547258080
+Time Elapsed: 1.92896
+MFlop/s: 270.563
+Floating point operations: 547258080
+Time Elapsed: 0.600005
+MFlop/s: 869.836
+Floating point operations: 547258080
+Time Elapsed: 0.101017
+MFlop/s: 5166.52
+64 2 512 512
+Floating point operations: 603979776
+Time Elapsed: 0.333146
+MFlop/s: 1728.97
+Floating point operations: 695002560
+Time Elapsed: 1.92579
+MFlop/s: 344.174
+Floating point operations: 695002560
+Time Elapsed: 0.596758
+MFlop/s: 1110.68
+Floating point operations: 695002560
+Time Elapsed: 0.106008
+MFlop/s: 6252.41
+64 4 512 512
+Floating point operations: 1207959552
+Time Elapsed: 0.656345
+MFlop/s: 1755.17
+Floating point operations: 990491520
+Time Elapsed: 1.96281
+MFlop/s: 481.253
+Floating point operations: 990491520
+Time Elapsed: 0.581786
+MFlop/s: 1623.63
+Floating point operations: 990491520
+Time Elapsed: 0.129856
+MFlop/s: 7274.27
+64 8 512 512
+Floating point operations: -1879048192
+Time Elapsed: 1.32231
+MFlop/s: -1355.2
+Floating point operations: 1581469440
+Time Elapsed: 2.0652
+MFlop/s: 730.297
+Floating point operations: 1581469440
+Time Elapsed: 0.684757
+MFlop/s: 2202.54
+Floating point operations: 1581469440
+Time Elapsed: 0.180876
+MFlop/s: 8338.35
+64 16 512 512
+Floating point operations: 536870912
+Time Elapsed: 2.6243
+MFlop/s: 195.099
+Floating point operations: -1531542016
+Time Elapsed: 2.27506
+MFlop/s: -642.002
+Floating point operations: -1531542016
+Time Elapsed: 0.753881
+MFlop/s: -1937.43
+Floating point operations: -1531542016
+Time Elapsed: 0.307761
+MFlop/s: -4745.86
+64 32 512 512
+Floating point operations: 1073741824
+Time Elapsed: 5.32615
+MFlop/s: 192.259
+Floating point operations: 832369664
+Time Elapsed: 2.65763
+MFlop/s: 298.69
+Floating point operations: 832369664
+Time Elapsed: 0.868283
+MFlop/s: 914.229
+Floating point operations: 832369664
+Time Elapsed: 0.796365
+MFlop/s: 996.791

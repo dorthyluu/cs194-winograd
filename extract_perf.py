@@ -7,13 +7,13 @@ import sys
 LINES_PER_BENCH = 3 # num. lines from each program
 BENCH_PER_SIZE = 4 # num. benchmarks for each H/W size
 
-BENCH_TEXT_NAME = "bench_image_size.txt"
+BENCH_TEXT_NAME = "benchmark_results/bench_filters.txt"
 
 # skip header line
 lines = open(BENCH_TEXT_NAME).read().split("\n")[1:]
 
-out = open("bench_extract.csv", "w+")
-out.write("K,C,H,W,naive,winograd,winograd_openmp,winograd_gpu")
+out = open("benchmark_results/bench_filters.csv", "w+")
+out.write("K,C,H,W,naive,winograd,winograd_openmp,winograd_gpu\n")
 
 index = 0
 while index < len(lines) - 1:

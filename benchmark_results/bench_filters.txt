@@ -1,0 +1,105 @@
+K C H W
+1 3 512 512
+Floating point operations: 14155776
+Time Elapsed: 0.00791788
+MFlop/s: 1705
+Floating point operations: 56181960
+Time Elapsed: 0.0512021
+MFlop/s: 1046.43
+Floating point operations: 56181960
+Time Elapsed: 0.027102
+MFlop/s: 1976.95
+Floating point operations: 56181960
+Time Elapsed: 0.01192
+MFlop/s: 4494.92
+2 3 512 512
+Floating point operations: 28311552
+Time Elapsed: 0.015388
+MFlop/s: 1754.61
+Floating point operations: 68667120
+Time Elapsed: 0.0825222
+MFlop/s: 793.557
+Floating point operations: 68667120
+Time Elapsed: 0.0476949
+MFlop/s: 1373.02
+Floating point operations: 68667120
+Time Elapsed: 0.0133002
+MFlop/s: 4923.7
+4 3 512 512
+Floating point operations: 56623104
+Time Elapsed: 0.031877
+MFlop/s: 1694.01
+Floating point operations: 93637440
+Time Elapsed: 0.147283
+MFlop/s: 606.313
+Floating point operations: 93637440
+Time Elapsed: 0.0447161
+MFlop/s: 1997.03
+Floating point operations: 93637440
+Time Elapsed: 0.015615
+MFlop/s: 5718.84
+8 3 512 512
+Floating point operations: 113246208
+Time Elapsed: 0.061506
+MFlop/s: 1755.93
+Floating point operations: 143578080
+Time Elapsed: 0.261967
+MFlop/s: 522.687
+Floating point operations: 143578080
+Time Elapsed: 0.0833111
+MFlop/s: 1643.56
+Floating point operations: 143578080
+Time Elapsed: 0.020169
+MFlop/s: 6788.96
+16 3 512 512
+Floating point operations: 226492416
+Time Elapsed: 0.123181
+MFlop/s: 1753.52
+Floating point operations: 243459360
+Time Elapsed: 0.479289
+MFlop/s: 484.428
+Floating point operations: 243459360
+Time Elapsed: 0.156642
+MFlop/s: 1482.24
+Floating point operations: 243459360
+Time Elapsed: 0.034024
+MFlop/s: 6824.03
+32 3 512 512
+Floating point operations: 452984832
+Time Elapsed: 0.25182
+MFlop/s: 1715.51
+Floating point operations: 443221920
+Time Elapsed: 1.08571
+MFlop/s: 389.32
+Floating point operations: 443221920
+Time Elapsed: 0.329368
+MFlop/s: 1283.34
+Floating point operations: 443221920
+Time Elapsed: 0.062036
+MFlop/s: 6813.61
+64 3 512 512
+Floating point operations: 905969664
+Time Elapsed: 0.49201
+MFlop/s: 1756.06
+Floating point operations: 842747040
+Time Elapsed: 1.95856
+MFlop/s: 410.357
+Floating point operations: 842747040
+Time Elapsed: 0.614303
+MFlop/s: 1308.32
+Floating point operations: 842747040
+Time Elapsed: 0.122776
+MFlop/s: 6546.12
+128 3 512 512
+Floating point operations: 1811939328
+Time Elapsed: 0.986666
+MFlop/s: 1751.35
+Floating point operations: 1641797280
+Time Elapsed: 3.91966
+MFlop/s: 399.458
+Floating point operations: 1641797280
+Time Elapsed: 1.14406
+MFlop/s: 1368.58
+Floating point operations: 1641797280
+Time Elapsed: 0.245211
+MFlop/s: 6385.28

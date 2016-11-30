@@ -1,0 +1,105 @@
+K C H W
+64 3 4 4
+Floating point operations: 55296
+Time Elapsed: 1.00136e-05
+MFlop/s: 5266.29
+Floating point operations: 36000
+Time Elapsed: 0.000151873
+MFlop/s: 226.06
+Floating point operations: 36000
+Time Elapsed: 0.00636411
+MFlop/s: 5.39467
+Floating point operations: 36000
+Time Elapsed: 0.00048399
+MFlop/s: 70.936
+64 3 8 8
+Floating point operations: 221184
+Time Elapsed: 7.51019e-05
+MFlop/s: 2808.69
+Floating point operations: 139680
+Time Elapsed: 0.000305176
+MFlop/s: 436.5
+Floating point operations: 139680
+Time Elapsed: 0.00623989
+MFlop/s: 21.348
+Floating point operations: 139680
+Time Elapsed: 0.00050211
+MFlop/s: 265.299
+64 3 16 16
+Floating point operations: 884736
+Time Elapsed: 0.000398874
+MFlop/s: 2115.33
+Floating point operations: 658080
+Time Elapsed: 0.0010922
+MFlop/s: 574.617
+Floating point operations: 658080
+Time Elapsed: 0.0279808
+MFlop/s: 22.4294
+Floating point operations: 658080
+Time Elapsed: 0.000527859
+MFlop/s: 1188.94
+64 3 32 32
+Floating point operations: 3538944
+Time Elapsed: 0.00161004
+MFlop/s: 2096.22
+Floating point operations: 2939040
+Time Elapsed: 0.00435901
+MFlop/s: 643.01
+Floating point operations: 2939040
+Time Elapsed: 0.0228112
+MFlop/s: 122.873
+Floating point operations: 2939040
+Time Elapsed: 0.000645876
+MFlop/s: 4339.67
+64 3 64 64
+Floating point operations: 14155776
+Time Elapsed: 0.00660086
+MFlop/s: 2045.19
+Floating point operations: 12477600
+Time Elapsed: 0.025116
+MFlop/s: 473.785
+Floating point operations: 12477600
+Time Elapsed: 0.0105591
+MFlop/s: 1126.95
+Floating point operations: 12477600
+Time Elapsed: 0.00191402
+MFlop/s: 6217.04
+64 3 128 128
+Floating point operations: 56623104
+Time Elapsed: 0.0274169
+MFlop/s: 1969.58
+Floating point operations: 51461280
+Time Elapsed: 0.123119
+MFlop/s: 398.616
+Floating point operations: 51461280
+Time Elapsed: 0.0696111
+MFlop/s: 705.021
+Floating point operations: 51461280
+Time Elapsed: 0.00697517
+MFlop/s: 7036
+64 3 256 256
+Floating point operations: 226492416
+Time Elapsed: 0.122086
+MFlop/s: 1769.24
+Floating point operations: 209054880
+Time Elapsed: 0.50026
+MFlop/s: 398.533
+Floating point operations: 209054880
+Time Elapsed: 0.1525
+MFlop/s: 1307.34
+Floating point operations: 209054880
+Time Elapsed: 0.0292611
+MFlop/s: 6813.49
+64 3 512 512
+Floating point operations: 905969664
+Time Elapsed: 0.497802
+MFlop/s: 1735.63
+Floating point operations: 842747040
+Time Elapsed: 2.00566
+MFlop/s: 400.72
+Floating point operations: 842747040
+Time Elapsed: 0.628053
+MFlop/s: 1279.68
+Floating point operations: 842747040
+Time Elapsed: 0.122845
+MFlop/s: 6542.44
