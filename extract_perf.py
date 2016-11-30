@@ -12,11 +12,16 @@ BENCH_TEXT_NAME = "bench_image_size.txt"
 # skip header line
 lines = open(BENCH_TEXT_NAME).read().split("\n")[1:]
 
-out = open("bench_extract.txt", "w+")
+out = open("bench_extract.csv", "w+")
+out.write("K,C,H,W,naive,winograd,winograd_openmp,winograd_gpu")
 
 index = 0
 while index < len(lines) - 1:
-  size = lines[index].split(" ")[-1]
+  try :
+    K, C, H, W = lines[index].split(" ")
+  except Exception:
+    print("Unexpected format")
+    sys.exit(-1)
   index += 1
   mflops = []
   for i in range(BENCH_PER_SIZE * LINES_PER_BENCH):
@@ -28,7 +33,7 @@ while index < len(lines) - 1:
     print("Benchmark output missing values")
     sys.exit(-1)
 
-  outline = size + ","
+  outline = "{},{},{},{},".format(K, C, H, W)
   for mflop in mflops:
     outline += mflop + ","
 
