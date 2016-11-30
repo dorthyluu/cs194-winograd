@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # Parses benchmark output and writes a CSV file.
-# Refer to bench_image.sh for which programs run
+# Refer to bench_image_size.sh for which programs run
 
 import sys
 
