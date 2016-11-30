@@ -13,7 +13,7 @@ __kernel void filter_transform(__global float *filters,
   size_t c = get_global_id(1);
 
   if((int) k < K && (int) c < C) {
-    int offset = (k * C + c) * r * r; // increasing multiples of 9
+    int offset = (k * C + c) * r * r;
 
     // temp = G * filters[k][c]
     float temp[12];
@@ -36,38 +36,7 @@ __kernel void filter_transform(__global float *filters,
         for(int l = 0; l < r; l++) {
           sum += temp[i*r + l] * G[j*r + l];
         }
-        // U[offset + i*alpha + j] = sum;
         U[i*(alpha*K*C) + j*(K*C) + k*C + c] = sum;
-      }
-    }
-
-    // for(int xi = 0; xi < alpha; xi++) {
-    //   for(int nu = 0; nu < alpha; nu++) {
-    //     U[xi*(alpha*K*C) + nu*(K*C) + k*C + c] = temp_u[xi*alpha + nu];
-    //   }
-    // }
-
-    // for xi in range(alpha):
-    //         for nu in range(alpha):
-    //             U[xi][nu][k][c] = u[xi][nu]
-  }
-}
-
-/* Given an array that is of shape (d1, d2, d3, d4), scatters 
- * the array so that it has shape (d3, d4, d1, d2). */
-__kernel void scatter(__global float *in,
-        __global float *out,
-        int d1,
-        int d2,
-        int d3,
-        int d4)
-{
-  size_t i = get_global_id(0); // TODO: switch to int
-  size_t j = get_global_id(1);
-  if ((int) i < d3 && (int) j < d4) {
-    for(int k = 0; k < d1; k++) {
-      for(int l = 0; l < d2; l++) {
-        out[i*(d4*d1*d2) + j*(d1*d2) + k*d2 + l] = in[k*(d2*d3*d4) + l*(d3*d4)+ i*d4 +j];
       }
     }
   }
@@ -81,12 +50,13 @@ __kernel void data_transform(__global float *data,
         int H,
         int W,
         int m,
-        int alpha)
+        int alpha,
+        int num_w_tiles)
 {
   int c = get_global_id(0);
   int block_y = get_global_id(1);
   int block_x = get_global_id(2);
-  int b = block_y * get_global_size(2) + block_x; // TODO: change get_global_size(2) to num_w_tiles
+  int b = block_y * num_w_tiles + block_x;
 
   if ((int) c < C && (int) b < P) {
 
@@ -130,17 +100,6 @@ __kernel void calc_M (__global float *U,
   int k = get_global_id(0);
   int b = get_global_id(1);
   if (k < K && b < P) {
-
-    // int kblock = get_group_id(0);
-    // int bblock = get_group_id(1);
-
-    // int block_size_y = get_local_size(0);
-    // int block_size_x = get_local_size(1);
-
-    // int num_blocks_y = K / block_size_y;
-    // int num_blocks_x = P / block_size_x;
-
-    // int num_blocks = C / block_size;
     float value;
     for(int xi = 0; xi < alpha; xi++) {
       for(int nu = 0; nu < alpha; nu++) {
@@ -149,12 +108,6 @@ __kernel void calc_M (__global float *U,
           value += U[xi*(alpha*K*C) + nu*(K*C) + k*C + c] * V[xi*(alpha*C*P) + nu*(C*P) + c*P + b];
         }
         M[xi*(alpha*K*P) + nu*(K*P) + k*P + b] = value;
-        // for(int iblock = 0; iblock < num_blocks; iblock++) {
-        //   // copy things to local memory
-        //   for(int iloc = 0; iloc < block_size; iloc++) {
-        //     value += U_local[] * V_local[];
-        //   }
-        // }
       }
     }
   }

@@ -91,7 +91,6 @@ int main(int argc, char *argv[])
     for (int i = 0; i < H; i++) {
       for (int j = 0; j < W; j++) {
         file >> data[c*(H*W) + i*H + j];
-        // printf("%d %d %d %.5f\n", c, i, j, data[c*(H*W) + i*H + j]);
       }
     }
   }
@@ -114,10 +113,6 @@ int main(int argc, char *argv[])
                 1.0, 1.0,
                 1.0, -1.0,
                 0.0, -1.0};
-
-  // float *U = new float[alpha*alpha*K*C];
-  // float *V = new float[alpha*alpha*C*P];
-  // float *M = new float[alpha*alpha*K*P];
   
   /* Array to hold the output. */
   float *Y = new float[K*out_H*out_W];
@@ -134,13 +129,11 @@ int main(int argc, char *argv[])
 
   std::list<std::string> kernel_names;
   std::string filter_transform_name_str = std::string("filter_transform");
-  std::string scatter_name_str = std::string("scatter");
   std::string data_transform_name_str = std::string("data_transform");
   std::string calc_M_name_str = std::string("calc_M");
   std::string calc_Y_name_str = std::string("calc_Y");
 
   kernel_names.push_back(filter_transform_name_str);
-  kernel_names.push_back(scatter_name_str);
   kernel_names.push_back(data_transform_name_str);
   kernel_names.push_back(calc_M_name_str);
   kernel_names.push_back(calc_Y_name_str);
@@ -177,16 +170,10 @@ int main(int argc, char *argv[])
   g_A = clCreateBuffer(cv.context,CL_MEM_READ_ONLY,
            sizeof(float)*alpha*m,NULL,&err);
   CHK_ERR(err);
-  // g_U_temp = clCreateBuffer(cv.context,CL_MEM_READ_WRITE,
-  //          sizeof(float)*K*C*alpha*alpha,NULL,&err);
-  // CHK_ERR(err);
   /* Will hold output of the filter transform. */
   g_U = clCreateBuffer(cv.context,CL_MEM_READ_WRITE,
            sizeof(float)*K*C*alpha*alpha,NULL,&err);
   CHK_ERR(err);
-  // g_V_temp = clCreateBuffer(cv.context,CL_MEM_READ_WRITE,
-  //          sizeof(float)*C*P*alpha*alpha,NULL,&err); // ONLY NEED ONE TEMP!! THE BIGGER ONE
-  // CHK_ERR(err);
   /* Will hold output of the data transform. */
   g_V = clCreateBuffer(cv.context,CL_MEM_READ_WRITE,
            sizeof(float)*C*P*alpha*alpha,NULL,&err);
@@ -276,6 +263,8 @@ int main(int argc, char *argv[])
   CHK_ERR(err);
   err = clSetKernelArg(data_transform_kern, 8, sizeof(int), &alpha);
   CHK_ERR(err);
+  err = clSetKernelArg(data_transform_kern, 9, sizeof(int), &num_w_tiles);
+  CHK_ERR(err);
 
   err = clSetKernelArg(calc_M_kern, 0, sizeof(cl_mem), &g_U);
   CHK_ERR(err);
@@ -291,10 +280,6 @@ int main(int argc, char *argv[])
   CHK_ERR(err);
   err = clSetKernelArg(calc_M_kern, 6, sizeof(int), &alpha);
   CHK_ERR(err);
-  // err = clSetKernelArg(calc_M_kern, 7, sizeof(float)*C*C, NULL);
-  // CHK_ERR(err);
-  // err = clSetKernelArg(calc_M_kern, 8, sizeof(float)*C*C, NULL);
-  // CHK_ERR(err);
 
   err = clSetKernelArg(calc_Y_kern, 0, sizeof(cl_mem), &g_M);
   CHK_ERR(err);
@@ -332,8 +317,7 @@ int main(int argc, char *argv[])
          );
   CHK_ERR(err);
 
-  /* Compute V. */
-
+  /* Compute data transform. */
   err = clEnqueueNDRangeKernel(cv.commands,
          data_transform_kern,
          3,//work_dim,
@@ -346,6 +330,7 @@ int main(int argc, char *argv[])
          );
   CHK_ERR(err);
 
+  /* Compute output in the transformed space. */
   err = clEnqueueNDRangeKernel(cv.commands,
          calc_M_kern,
          2,//work_dim,
@@ -358,12 +343,13 @@ int main(int argc, char *argv[])
          );
   CHK_ERR(err);
 
+  /* Transform output back into input space. */
   err = clEnqueueNDRangeKernel(cv.commands,
          calc_Y_kern,
          3,//work_dim,
          NULL, //global_work_offset
          global_work_size_Y, //global_work_size
-         local_work_size_Y, //local_work_size     // this is not scalable
+         local_work_size_Y, //local_work_size
          0, //num_events_in_wait_list
          NULL, //event_wait_list
          NULL //
@@ -376,9 +362,7 @@ int main(int argc, char *argv[])
   time = timestamp() - time;
 
   /* Report timing and Mflop/s */
-  // cout << "Time Elapsed: " << time << "\n";
   report_winograd_statistics(K, C, P, time);
-
 
   /* Write output to specified file. */
   err = clEnqueueReadBuffer(cv.commands, g_Y, true, 0, sizeof(float)*K*out_H*out_W,
@@ -406,9 +390,7 @@ int main(int argc, char *argv[])
   clReleaseMemObject(g_G);
   clReleaseMemObject(g_B);
   clReleaseMemObject(g_A);
-  // clReleaseMemObject(g_U_temp);
   clReleaseMemObject(g_U);
-  // clReleaseMemObject(g_V_temp);
   clReleaseMemObject(g_V);
   clReleaseMemObject(g_M);
   clReleaseMemObject(g_Y);
