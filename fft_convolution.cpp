@@ -51,7 +51,8 @@ double timestamp()
 }
 
 void report_fft_statistics(int K, int C, int H, int W, double time) {
-  int flop = K * H * W * C + K * C * (H - 2) * (W - 2); // + ??? FFT flop
+  long int flop = K * H * W * C + K * C * (H - 2) * (W - 2) +
+    7 * (H * W) * log2(H * W) * K * C;
   double mflops = flop / (1024.0 * 1024.0 * time);
   cout << "Floating point operations: " << flop << "\n";
   cout << "Time Elapsed: " << time << "\n";
