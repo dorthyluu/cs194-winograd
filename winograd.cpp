@@ -152,6 +152,12 @@ int main(int argc, char* argv[])
   file.open(argv[1]);
   int K, C, H, W;
   file >> K >> C >> H >> W;
+
+  if (H % 2 != 0 || W % 2 != 0) {
+    cout << "Error: Image dimensions must be even." << endl;
+    return 1;
+  }
+
   cube* filters = new cube[K]();
   for (int i = 0; i < K; i++) {
     filters[i] = cube(3, 3, C);
