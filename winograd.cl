@@ -5,7 +5,8 @@
 #define alpha 4
 
 /* For the filter g located at FILTERS[k][c], computes the transformation
- * u = G * g * G^T. Then, catters each matrix u into the output U. */
+ * u = G * g * G^T. Then, catters each matrix u into the output U. 
+ * G has dimensions (alpha,r)*/
 __kernel void filter_transform(__global float *filters,
         __constant float *G,
         __global float *U,
@@ -20,7 +21,8 @@ __kernel void filter_transform(__global float *filters,
     int offset = (k * C + c) * r * r;
 
     /* Compute the matrix multiplication:
-     * temp = G * filters[k][c] */
+     * temp = G * filters[k][c].
+     * temp needs to be size alpha*r = 4*3 = 12 */
     float temp[12];
     float sum;
     for(int i = 0; i < alpha; i++) {
@@ -36,7 +38,6 @@ __kernel void filter_transform(__global float *filters,
     /* Compute the matrix multiplication:
      * u = temp * G^T. Scatter u into U as follows:
      * U[xi][nu][k][c] = u[xi][nu]. */
-    // TODO: rename vars appropriately
     offset = (k * C + c) * alpha * alpha;
     for(int xi = 0; xi < alpha; xi++){
       for(int nu = 0; nu < alpha; nu++) {
@@ -64,17 +65,16 @@ __kernel void data_transform(__global float *data,
   int block_y = get_global_id(1);
   int block_x = get_global_id(2);
   
-
   if (c < C && block_y < num_h_tiles && block_x < num_w_tiles) {
     int b = block_y * num_w_tiles + block_x;
-
     int x = block_x * m;
     int y = block_y * m;
 
     /* Compute the matrix multiplication:
      * temp = B^T * data[c][b], where b is a 1d index 
-     * over the tiles in the image. */
-    float temp[16]; // TODO: explain that we can hard code this ???
+     * over the tiles in the image. 
+     * temp needs to be size alpha*alpha = 4*4 = 16 */
+    float temp[16];
     float sum;
     for(int i = 0; i < alpha; i++) {
       for(int j = 0; j < alpha; j++) {
@@ -89,7 +89,6 @@ __kernel void data_transform(__global float *data,
     /* Compute the matrix multiplication:
      * v = temp * B, then scatters v into V as follows:
      * V[xi][nu][c][b] = v[xi][nu] */
-    // TODO: fix index variables
     int offset = c*(P*alpha*alpha) + b*(alpha*alpha);
     for(int xi = 0; xi < alpha; xi++) {
       for(int nu = 0; nu < alpha; nu++) {
@@ -130,7 +129,8 @@ __kernel void calc_M (__global float *U,
   }
 }
 
-/* Gathers each matrix temp_m from M and computes A^T * temp_m * A.*/
+/* Gathers each matrix temp_m from M and computes A^T * temp_m * A.
+ * A has dimensions (alpha,m). */
 __kernel void calc_Y(__global float *M,
         __constant float *A,
         __global float *Y,
@@ -147,17 +147,18 @@ __kernel void calc_Y(__global float *M,
   
   if (k < K && block_y < num_h_tiles && block_x < num_w_tiles) {
     int b = block_y * num_w_tiles + block_x;
-    float temp_m[16]; // alpha x alpha
+    /* temp_m needs to be size alpha*alpha = 4*4 = 16 */
+    float temp_m[16];
     /* Gather temp_m from M, where:
      * temp_m[xi][nu] = M[xi][nu][k][b]*/
     for(int xi = 0; xi < alpha; xi++) {
       for(int nu = 0; nu < alpha; nu++) {
-        temp_m[xi*alpha + nu] = M[xi*(alpha*K*P) + nu*(K*P)+ k*P + b]; //M[xi][nu][k][b]
+        temp_m[xi*alpha + nu] = M[xi*(alpha*K*P) + nu*(K*P)+ k*P + b];
       }
     }
     /* Compute temp_m = A^T * temp. */
-    // A is alpha x 
-    float temp[8]; // TODO explain size
+    /* temp needs to be size alpha*m = 4*2 = 8*/
+    float temp[8];
     float sum;
     for(int i = 0; i < m; i++) {
       for(int j = 0; j < alpha; j ++) {

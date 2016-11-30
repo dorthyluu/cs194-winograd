@@ -60,15 +60,12 @@ int main(int argc, char *argv[])
     valid = false;
   if (!valid) {
     cout << "Please make sure that:\n";
-    cout << "H (height of image) minus 2 is a multiple of 16\n";
-    cout << "W (width of image) minus 2 is a multiple of 16\n";
+    cout << "H (height of image) is even \n";
+    cout << "W (width of image) is even \n";
     file.close();
     return 0;
   }
-  // TODO: m, r, and alpha should be in header file
-  // int m = 2;
-  // int r = 3;
-  // int alpha = m + r - 1;
+
   int out_H = H - r + 1;
   int out_W = W - r + 1;
   int num_h_tiles = ceil(out_H/m);
@@ -211,11 +208,11 @@ int main(int argc, char *argv[])
   // TODO : write a function to fix gws
   /* Filter transform, which calculates U. */
   size_t global_work_size_U[2] = {gws(K,8), gws(C,4)};
-  size_t local_work_size_U[2] = {fmin(K, 8), fmin(C, 4)};
+  size_t local_work_size_U[2] = {8, 4};
 
   /* Data transform, which calculates V. */
   size_t global_work_size_V[3] = {gws(C, 4), gws(num_h_tiles, 4), gws(num_w_tiles, 4)};
-  size_t local_work_size_V[3] = {fmin(C, 4), fmin(num_h_tiles, 4), fmin(num_w_tiles, 4)};
+  size_t local_work_size_V[3] = {4, 4, 4};
 
   /* Calculating M. */
   int local_M = 8;
@@ -224,7 +221,7 @@ int main(int argc, char *argv[])
 
   /* Calculating Y. */
   size_t global_work_size_Y[3] = {gws(K, 2), gws(num_h_tiles, 8), gws(num_w_tiles, 8)};
-  size_t local_work_size_Y[3] = {fmin(K, 2), fmin(num_h_tiles, 8), fmin(num_w_tiles, 8)};
+  size_t local_work_size_Y[3] = {2, 8, 8};
 
   /* Get the compiled kernels. */
   cl_kernel filter_transform_kern = kernel_map[filter_transform_name_str];
@@ -243,10 +240,6 @@ int main(int argc, char *argv[])
   CHK_ERR(err);
   err = clSetKernelArg(filter_transform_kern, 4, sizeof(int), &C);
   CHK_ERR(err);
-  // err = clSetKernelArg(filter_transform_kern, 5, sizeof(int), &r);
-  // CHK_ERR(err);
-  // err = clSetKernelArg(filter_transform_kern, 6, sizeof(int), &alpha);
-  // CHK_ERR(err);
 
   err = clSetKernelArg(data_transform_kern, 0, sizeof(cl_mem), &g_data);
   CHK_ERR(err);
@@ -283,8 +276,6 @@ int main(int argc, char *argv[])
   CHK_ERR(err);
   err = clSetKernelArg(calc_M_kern, 5, sizeof(int), &C);
   CHK_ERR(err);
-  // err = clSetKernelArg(calc_M_kern, 6, sizeof(int), &alpha);
-  // CHK_ERR(err);
 
   err = clSetKernelArg(calc_Y_kern, 0, sizeof(cl_mem), &g_M);
   CHK_ERR(err);
@@ -300,10 +291,6 @@ int main(int argc, char *argv[])
   CHK_ERR(err);
   err = clSetKernelArg(calc_Y_kern, 6, sizeof(int), &P);
   CHK_ERR(err);
-  // err = clSetKernelArg(calc_Y_kern, 7, sizeof(int), &m);
-  // CHK_ERR(err);
-  // err = clSetKernelArg(calc_Y_kern, 8, sizeof(int), &alpha);
-  // CHK_ERR(err);
   err = clSetKernelArg(calc_Y_kern, 7, sizeof(int), &num_h_tiles);
   CHK_ERR(err);
   err = clSetKernelArg(calc_Y_kern, 8, sizeof(int), &num_w_tiles);
