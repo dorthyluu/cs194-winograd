@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "K C H W" >> bench_filters.txt
-for n in {0..9};
+for n in {0..7};
 do 
     K=$((1 << n))
     echo $((K)) 3 512 512 >> bench_filters.txt
