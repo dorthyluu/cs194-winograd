@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "Running..."
-echo "K C H W" >> bench_channels.txt
+echo "K C H W" > bench_channels.txt
 for n in {0..5};
 do 
     C=$((1 << n))

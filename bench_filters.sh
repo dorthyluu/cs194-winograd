@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "Running..."
-echo "K C H W" >> bench_filters.txt
+echo "K C H W" > bench_filters.txt
 for n in {0..7};
 do 
     K=$((1 << n))
