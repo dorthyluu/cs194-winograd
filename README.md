@@ -1,3 +1,7 @@
+# About:
+- We implemented 3x3 convolutions.
+- When using the Winograd algorithm for convolutions, we used F(2x2, 3x3), which means that the output for one tile is 2x2.
+
 # OSX setup instructions:
 - install latest XCode Command Line Tools
 - install [brew](http://brew.sh/)
