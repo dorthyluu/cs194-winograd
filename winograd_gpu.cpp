@@ -205,7 +205,6 @@ int main(int argc, char *argv[])
   /* Compute global and local work sizes for the following: */
 
 
-  // TODO : write a function to fix gws
   /* Filter transform, which calculates U. */
   size_t global_work_size_U[2] = {gws(K,8), gws(C,4)};
   size_t local_work_size_U[2] = {8, 4};
@@ -255,10 +254,6 @@ int main(int argc, char *argv[])
   CHK_ERR(err);
   err = clSetKernelArg(data_transform_kern, 6, sizeof(int), &W);
   CHK_ERR(err);
-  // err = clSetKernelArg(data_transform_kern, 7, sizeof(int), &m);
-  // CHK_ERR(err);
-  // err = clSetKernelArg(data_transform_kern, 8, sizeof(int), &alpha);
-  // CHK_ERR(err);
   err = clSetKernelArg(data_transform_kern, 7, sizeof(int), &num_h_tiles);
   CHK_ERR(err);
   err = clSetKernelArg(data_transform_kern, 8, sizeof(int), &num_w_tiles);
