@@ -1,6 +1,9 @@
 winograd
+winograd_openmp
+winograd_gpu
 naive_convolution
 compare_outputs
+*.o
 *.in
 *.out
 *.txt

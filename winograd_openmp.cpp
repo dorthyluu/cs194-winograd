@@ -61,58 +61,77 @@ void convolute(int K, int C, int H, int W, cube* filters, cube& image, cube& res
   for (int xi = 0; xi < alpha; xi++) {
     M[xi] = new mat[alpha];
   }
-  
+  int num_threads = omp_get_max_threads();
+  mat* m_hold = new mat[num_threads]();
+  for (int i = 0; i < num_threads; i++) {
+    m_hold[i] = zeros<mat>(alpha, alpha);
+  }
 
   double time = timestamp();
-
-  for (int k = 0; k < K; k++) {
-    for (int c = 0; c < C; c++) {
-      // flop: K * C * (4 * 3 * 5) * 2 
-      mat u = G * filters[k].slice(c) * G.t();
-      for (int xi = 0; xi < alpha; xi++) {
-        for (int nu = 0; nu < alpha; nu++) {
-          U[xi][nu](k, c) = u(xi, nu);
+  omp_set_num_threads(num_threads);;
+  #pragma omp parallel
+  {
+    #pragma omp for collapse(2) 
+    for (int k = 0; k < K; k++) {
+      for (int c = 0; c < C; c++) {
+        // flop: K * C * (4 * 3 * 5) * 2 
+        mat u = G * filters[k].slice(c) * G.t();
+        for (int xi = 0; xi < alpha; xi++) {
+          for (int nu = 0; nu < alpha; nu++) {
+            U[xi][nu](k, c) = u(xi, nu);
+          }
         }
       }
     }
   }
 
+  // since we're considering 3x3, optimizing omp for inner loop
   for (int c = 0; c < C; c++) {
     mat channel = image.slice(c);
-    for (int y = 0; y < num_h_tiles; y++) {
-      for (int x = 0; x < num_w_tiles; x++) {
-        mat d = channel(span(y * m, y * m + alpha - 1), span(x * m, x * m + alpha - 1));
-        // flop: C * P * (4 * 4 * 7) * 2
-        mat v = B.t() * d * B;
-        int b = gen_b(y, x);
-        for (int xi = 0; xi < alpha; xi++) {
-          for (int nu = 0; nu < alpha; nu++) {
-            V[xi][nu](c, b) = v(xi, nu);
+    #pragma omp parallel
+    {
+      #pragma omp for collapse(2)
+      for (int y = 0; y < num_h_tiles; y++) {
+        for (int x = 0; x < num_w_tiles; x++) {
+          mat d = channel(span(y * m, y * m + alpha - 1), span(x * m, x * m + alpha - 1));
+          // flop: C * P * (4 * 4 * 7) * 2
+          mat v = B.t() * d * B;
+          int b = gen_b(y, x);
+          for (int xi = 0; xi < alpha; xi++) {
+            for (int nu = 0; nu < alpha; nu++) {
+              V[xi][nu](c, b) = v(xi, nu);
+            }
           }
         }
       }
     }
   }
-  
-  for (int xi = 0; xi < alpha; xi++) {
-    for (int nu = 0; nu < alpha; nu++) {
-      // flop: 16 * K * P * (2C - 1) 
-      M[xi][nu] = U[xi][nu] * V[xi][nu];
+  #pragma omp parallel
+  {
+    #pragma omp for collapse(2)
+    for (int xi = 0; xi < alpha; xi++) {
+      for (int nu = 0; nu < alpha; nu++) {
+        // flop: 16 * K * P * (2C - 1) 
+        M[xi][nu] = U[xi][nu] * V[xi][nu];
+      }
     }
   }
-
-  mat m_hold = zeros<mat>(alpha, alpha);
-  for (int k = 0; k < K; k++) {
-    for (int y = 0; y < num_h_tiles; y++) {
-      for (int x = 0; x < num_w_tiles; x++) {
-        int b = gen_b(y, x);
-        for (int xi = 0; xi < alpha; xi++) {
-          for (int nu = 0; nu < alpha; nu++) {
-            m_hold(xi, nu) = M[xi][nu](k, b);
+  #pragma omp parallel 
+  {
+    #pragma omp for collapse(3)
+    for (int k = 0; k < K; k++) {
+      for (int y = 0; y < num_h_tiles; y++) {
+        for (int x = 0; x < num_w_tiles; x++) {
+          int b = gen_b(y, x);
+          for (int xi = 0; xi < alpha; xi++) {
+            for (int nu = 0; nu < alpha; nu++) {
+              m_hold[omp_get_thread_num()](xi, nu) = M[xi][nu](k, b);
+            }
           }
+          // flop: K * P * (2 * 4 * 7) * 2
+          result.slice(k)(span(y*m, (y+1)*m-1), span(x*m, (x+1)*m-1)) =
+            A.t() * m_hold[omp_get_thread_num()] * A;
         }
-        // flop: K * P * (2 * 4 * 7) * 2
-        result.slice(k)(span(y*m, (y+1)*m-1), span(x*m, (x+1)*m-1)) = A.t() * m_hold * A;
       }
     }
   }

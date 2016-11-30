@@ -2,6 +2,11 @@
 - install latest XCode Command Line Tools
 - install [brew](http://brew.sh/)
 - install armadillo `brew install armadillo`
+- install llvm for openmp `brew install llvm`
+
+# Hive setup instructions:
+- Download the source for armadillo
+- After unzipping the directory, `cmake .`, then `make`, then `make install DESTDIR=~/lib`
 
 ## Run naive convolution
 - Compile with `make`
