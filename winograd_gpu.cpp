@@ -129,11 +129,13 @@ int main(int argc, char *argv[])
   std::string filter_transform_name_str = std::string("filter_transform");
   std::string data_transform_name_str = std::string("data_transform");
   std::string calc_M_name_str = std::string("calc_M");
+  std::string other_calc_M_name_str = std::string("other_calc_M");
   std::string calc_Y_name_str = std::string("calc_Y");
 
   kernel_names.push_back(filter_transform_name_str);
   kernel_names.push_back(data_transform_name_str);
   kernel_names.push_back(calc_M_name_str);
+  kernel_names.push_back(other_calc_M_name_str);
   kernel_names.push_back(calc_Y_name_str);
  
   std::map<std::string, cl_kernel> kernel_map;
@@ -204,7 +206,6 @@ int main(int argc, char *argv[])
 
   /* Compute global and local work sizes for the following: */
 
-
   /* Filter transform, which calculates U. */
   size_t global_work_size_U[2] = {gws(K,8), gws(C,4)};
   size_t local_work_size_U[2] = {8, 4};
@@ -218,6 +219,9 @@ int main(int argc, char *argv[])
   size_t global_work_size_M[2] = {gws(K, local_M), gws(P, local_M)};
   size_t local_work_size_M[2] = {local_M, local_M};
 
+  size_t global_work_size_other_M[2] = {alpha, alpha};
+  size_t local_work_size_other_M[2] = {alpha, alpha};
+
   /* Calculating Y. */
   size_t global_work_size_Y[3] = {gws(K, 2), gws(num_h_tiles, 8), gws(num_w_tiles, 8)};
   size_t local_work_size_Y[3] = {2, 8, 8};
@@ -226,6 +230,7 @@ int main(int argc, char *argv[])
   cl_kernel filter_transform_kern = kernel_map[filter_transform_name_str];
   cl_kernel data_transform_kern = kernel_map[data_transform_name_str];
   cl_kernel calc_M_kern = kernel_map[calc_M_name_str];
+  cl_kernel other_calc_M_kern = kernel_map[other_calc_M_name_str];
   cl_kernel calc_Y_kern = kernel_map[calc_Y_name_str];
 
   /* Set the arguments for each kernel. */
@@ -259,17 +264,34 @@ int main(int argc, char *argv[])
   err = clSetKernelArg(data_transform_kern, 8, sizeof(int), &num_w_tiles);
   CHK_ERR(err);
 
-  err = clSetKernelArg(calc_M_kern, 0, sizeof(cl_mem), &g_U);
+  // err = clSetKernelArg(calc_M_kern, 0, sizeof(cl_mem), &g_U);
+  // CHK_ERR(err);
+  // err = clSetKernelArg(calc_M_kern, 1, sizeof(cl_mem), &g_V);
+  // CHK_ERR(err);
+  // err = clSetKernelArg(calc_M_kern, 2, sizeof(cl_mem), &g_M);
+  // CHK_ERR(err);
+  // err = clSetKernelArg(calc_M_kern, 3, sizeof(int), &K);
+  // CHK_ERR(err);
+  // err = clSetKernelArg(calc_M_kern, 4, sizeof(int), &P);
+  // CHK_ERR(err);
+  // err = clSetKernelArg(calc_M_kern, 5, sizeof(int), &C);
+  // CHK_ERR(err);
+
+  err = clSetKernelArg(other_calc_M_kern, 0, sizeof(cl_mem), &g_U);
   CHK_ERR(err);
-  err = clSetKernelArg(calc_M_kern, 1, sizeof(cl_mem), &g_V);
+  err = clSetKernelArg(other_calc_M_kern, 1, sizeof(cl_mem), &g_V);
   CHK_ERR(err);
-  err = clSetKernelArg(calc_M_kern, 2, sizeof(cl_mem), &g_M);
+  err = clSetKernelArg(other_calc_M_kern, 2, sizeof(cl_mem), &g_M);
   CHK_ERR(err);
-  err = clSetKernelArg(calc_M_kern, 3, sizeof(int), &K);
+  err = clSetKernelArg(other_calc_M_kern, 3, sizeof(int), &K);
   CHK_ERR(err);
-  err = clSetKernelArg(calc_M_kern, 4, sizeof(int), &P);
+  err = clSetKernelArg(other_calc_M_kern, 4, sizeof(int), &P);
   CHK_ERR(err);
-  err = clSetKernelArg(calc_M_kern, 5, sizeof(int), &C);
+  err = clSetKernelArg(other_calc_M_kern, 5, sizeof(int), &C);
+  CHK_ERR(err);
+  err = clSetKernelArg(other_calc_M_kern, 6, sizeof(int), &num_h_tiles);
+  CHK_ERR(err);
+  err = clSetKernelArg(other_calc_M_kern, 7, sizeof(int), &num_w_tiles);
   CHK_ERR(err);
 
   err = clSetKernelArg(calc_Y_kern, 0, sizeof(cl_mem), &g_M);
@@ -321,12 +343,24 @@ int main(int argc, char *argv[])
   CHK_ERR(err);
 
   /* Compute the pre-transformed output. */
+  // err = clEnqueueNDRangeKernel(cv.commands,
+  //        calc_M_kern,
+  //        2,//work_dim,
+  //        NULL, //global_work_offset
+  //        global_work_size_M, //global_work_size
+  //        local_work_size_M, //local_work_size
+  //        0, //num_events_in_wait_list
+  //        NULL, //event_wait_list
+  //        NULL //
+  //        );
+  // CHK_ERR(err);
+
   err = clEnqueueNDRangeKernel(cv.commands,
-         calc_M_kern,
+         other_calc_M_kern,
          2,//work_dim,
          NULL, //global_work_offset
-         global_work_size_M, //global_work_size
-         local_work_size_M, //local_work_size
+         global_work_size_other_M, //global_work_size
+         local_work_size_other_M, //local_work_size
          0, //num_events_in_wait_list
          NULL, //event_wait_list
          NULL //

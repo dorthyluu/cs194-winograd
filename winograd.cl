@@ -129,6 +129,38 @@ __kernel void calc_M (__global float *U,
   }
 }
 
+__kernel void other_calc_M (__global float *U,
+        __global float *V,
+        __global float *M,
+        int K,
+        int P,
+        int C,
+        int num_h_tiles,
+        int num_w_tiles)
+{
+  int xi = get_global_id(0);
+  int nu = get_global_id(1);
+  if (xi < alpha && nu < alpha) {
+    float sum;
+    int b;
+    int U_offset = xi*(alpha*K*C) + nu*(K*C);
+    int V_offset = xi*(alpha*C*P) + nu*(C*P);
+    int M_offset = xi*(alpha*K*P) + nu*(K*P);
+    for(int k = 0; k < K; k++) {
+      for(int block_y = 0; block_y < num_h_tiles; block_y++) {
+        for(int block_x = 0; block_x < num_w_tiles; block_x++) {
+          b = block_y * num_w_tiles + block_x;
+          sum = 0;
+          for(int c = 0; c < C; c++) {
+            sum += U[U_offset + k*C + c] * V[V_offset + c*P + b];
+          }
+          M[M_offset + k*P + b] = sum;
+        }
+      }
+    }
+  }
+}
+
 /* Gathers each matrix temp_m from M and computes A^T * temp_m * A.
  * A has dimensions (alpha,m). */
 __kernel void calc_Y(__global float *M,
