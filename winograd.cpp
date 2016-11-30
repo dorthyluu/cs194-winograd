@@ -28,7 +28,11 @@ void free_fourd_array(mat** array, int d1) {
   delete[] array;
 }
 
+// input: K filters, C channels, H height, W width, array of filters, image reference,
+// result reference. Modifies result.
 void convolute(int K, int C, int H, int W, cube* filters, cube& image, cube& result) {
+  // defining constants and values that follow directly from
+  // https://arxiv.org/abs/1509.09308
   int m = 2;
   int r = 3;
   int alpha = m + r - 1;
@@ -50,6 +54,8 @@ void convolute(int K, int C, int H, int W, cube* filters, cube& image, cube& res
             {1, -1},
             {0, -1}};
 
+  // a helper lambda function that generates b, the tile index,
+  // from the y and x tile coordinates.
   auto gen_b = [num_h_tiles, num_w_tiles](int y, int x) -> int {
     return y * num_w_tiles + x;
   };
@@ -65,6 +71,7 @@ void convolute(int K, int C, int H, int W, cube* filters, cube& image, cube& res
 
   double time = timestamp();
 
+  // Generates U, an alpha x alpha x K x C transformation of the filters.
   for (int k = 0; k < K; k++) {
     for (int c = 0; c < C; c++) {
       // flop: K * C * (4 * 3 * 5) * 2 
@@ -77,6 +84,7 @@ void convolute(int K, int C, int H, int W, cube* filters, cube& image, cube& res
     }
   }
 
+  // Generates V, an alpha x alpha x C x P transformation of the image.
   for (int c = 0; c < C; c++) {
     mat channel = image.slice(c);
     for (int y = 0; y < num_h_tiles; y++) {
@@ -94,6 +102,7 @@ void convolute(int K, int C, int H, int W, cube* filters, cube& image, cube& res
     }
   }
   
+  // computes M, an alpha x alpha x K x P matrix
   for (int xi = 0; xi < alpha; xi++) {
     for (int nu = 0; nu < alpha; nu++) {
       // flop: 16 * K * P * (2C - 1) 
@@ -101,6 +110,7 @@ void convolute(int K, int C, int H, int W, cube* filters, cube& image, cube& res
     }
   }
 
+  // computes the final convolution.
   mat m_hold = zeros<mat>(alpha, alpha);
   for (int k = 0; k < K; k++) {
     for (int y = 0; y < num_h_tiles; y++) {
