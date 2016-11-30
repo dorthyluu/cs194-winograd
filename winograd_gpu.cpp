@@ -32,6 +32,7 @@ void report_winograd_statistics(int K, int C, int P, double time) {
 
 int main(int argc, char *argv[])
 {
+  /* Check that program arguments are properly specified. */
   if (argc != 3) {
     cout << "Usage: ./winograd_gpu <input filename> <output filename>\n";
     return 0;
@@ -63,7 +64,7 @@ int main(int argc, char *argv[])
     file.close();
     return 0;
   }
-
+  // TODO: m, r, and alpha should be in header file
   int m = 2;
   int r = 3;
   int alpha = m + r - 1;
@@ -119,11 +120,10 @@ int main(int argc, char *argv[])
 
 
   /* OpenCL setup. */
-
   std::string kernel_source_str;
   
   /* Provide names of the OpenCL kernels
-   * and cl file that they're kept in */
+   * and cl file that they're kept in. */
   std::string arraycompact_kernel_file = 
     std::string("winograd.cl");
 
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
   g_data = clCreateBuffer(cv.context,CL_MEM_READ_WRITE,
            sizeof(float)*C*H*W,NULL,&err);
   CHK_ERR(err);
-  g_G = clCreateBuffer(cv.context,CL_MEM_READ_ONLY, // constant?
+  g_G = clCreateBuffer(cv.context,CL_MEM_READ_ONLY,
            sizeof(float)*alpha*r,NULL,&err);
   CHK_ERR(err);
   g_B = clCreateBuffer(cv.context,CL_MEM_READ_ONLY,
@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
   g_V = clCreateBuffer(cv.context,CL_MEM_READ_WRITE,
            sizeof(float)*C*P*alpha*alpha,NULL,&err);
   CHK_ERR(err);
-  /* Will hold the un-transformed output. */
+  /* Will hold the pre-transformed output. */
   g_M = clCreateBuffer(cv.context,CL_MEM_READ_WRITE,
            sizeof(float)*K*P*alpha*alpha,NULL,&err);
   CHK_ERR(err);
@@ -203,24 +203,19 @@ int main(int argc, char *argv[])
   err = clEnqueueWriteBuffer(cv.commands, g_A, true, 0,
            sizeof(float)*alpha*m, A, 0, NULL, NULL);
   CHK_ERR(err);
-  
-  cl_kernel filter_transform_kern = kernel_map[filter_transform_name_str];
-  cl_kernel data_transform_kern = kernel_map[data_transform_name_str];
-  cl_kernel calc_M_kern = kernel_map[calc_M_name_str];
-  cl_kernel calc_Y_kern = kernel_map[calc_Y_name_str];
 
   /* Compute global and local work sizes for the following: */
 
-  /* Filter transform. */
+  /* Filter transform, which calculates U. */
   size_t global_work_size_U[2] = {K, C};
   size_t local_work_size_U[2] = {fmin(K, 8), C};
 
-  /* Data transform. */
+  /* Data transform, which calculates V. */
   size_t global_work_size_V[3] = {C, num_h_tiles, num_w_tiles};
   size_t local_work_size_V[3] = {C, fmin(num_w_tiles, 4), fmin(num_w_tiles, 4)};
 
   /* Calculating M. */
-  int local_M = 8; // can change to 2
+  int local_M = 8;
   size_t global_work_size_M[2] = {(K+local_M)/local_M*local_M, (P+local_M)/local_M*local_M};
   size_t local_work_size_M[2] = {local_M, local_M};
 
@@ -228,8 +223,13 @@ int main(int argc, char *argv[])
   size_t global_work_size_Y[3] = {K, num_h_tiles, num_w_tiles};
   size_t local_work_size_Y[3] = {fmin(K, 2), fmin(num_w_tiles, 8), fmin(num_w_tiles, 8)};
 
+  /* Get the compiled kernels. */
+  cl_kernel filter_transform_kern = kernel_map[filter_transform_name_str];
+  cl_kernel data_transform_kern = kernel_map[data_transform_name_str];
+  cl_kernel calc_M_kern = kernel_map[calc_M_name_str];
+  cl_kernel calc_Y_kern = kernel_map[calc_Y_name_str];
 
-  /* Set kernel arguments. */
+  /* Set the arguments for each kernel. */
   err = clSetKernelArg(filter_transform_kern, 0, sizeof(cl_mem), &g_filters);
   CHK_ERR(err);
   err = clSetKernelArg(filter_transform_kern, 1, sizeof(cl_mem), &g_G);
@@ -302,6 +302,7 @@ int main(int argc, char *argv[])
   err = clSetKernelArg(calc_Y_kern, 9, sizeof(int), &num_w_tiles);
   CHK_ERR(err);
 
+  /* Start recording time for benchmarking. */
   double time = timestamp();
 
   /* Compute filter transform. */
@@ -330,7 +331,7 @@ int main(int argc, char *argv[])
          );
   CHK_ERR(err);
 
-  /* Compute output in the transformed space. */
+  /* Compute the pre-transformed output. */
   err = clEnqueueNDRangeKernel(cv.commands,
          calc_M_kern,
          2,//work_dim,
@@ -343,7 +344,7 @@ int main(int argc, char *argv[])
          );
   CHK_ERR(err);
 
-  /* Transform output back into input space. */
+  /* Transform the output. */
   err = clEnqueueNDRangeKernel(cv.commands,
          calc_Y_kern,
          3,//work_dim,
@@ -364,13 +365,13 @@ int main(int argc, char *argv[])
   /* Report timing and Mflop/s */
   report_winograd_statistics(K, C, P, time);
 
-  /* Write output to specified file. */
   err = clEnqueueReadBuffer(cv.commands, g_Y, true, 0, sizeof(float)*K*out_H*out_W,
            Y, 0, NULL, NULL);
   CHK_ERR(err);
 
+  /* Write output Y to the specified file. */
   ofstream fileout;
-  fileout.open(argv[2], ofstream::out | ofstream::trunc );
+  fileout.open(argv[2], ofstream::out | ofstream::trunc);
   fileout << K << " " << C << " " << H << " " << W << endl;
   for(int k = 0; k < K; k++) {
     fileout << "\n";
@@ -382,7 +383,6 @@ int main(int argc, char *argv[])
       fileout << "\n";
     }
   }
-
   fileout.close();
 
   clReleaseMemObject(g_filters); 
@@ -400,6 +400,6 @@ int main(int argc, char *argv[])
   delete[] filters;
   delete[] data;
   delete[] Y;
-  return 0;
 
+  return 0;
 }
