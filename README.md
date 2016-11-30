@@ -27,3 +27,8 @@
 ## Flops Calculation:
 - All floating point additions and multiplications are counted as separate operations.
 - Manually counted, as Haswell architecture does not support hardware counters
+
+## Benchmarks
+- `./bench_image_size.sh`
+- `./extract_perf.py` will extract MFlop/s to `bench_extract.csv`.
+- NOTE: The benchmark creates many `.in` input files that may take up a lot of disk space. Make sure disk quota does not fill up during benchmarking.
