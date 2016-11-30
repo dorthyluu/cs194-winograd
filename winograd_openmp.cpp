@@ -3,7 +3,6 @@
 #include <armadillo>
 #include <math.h>
 #include <sys/time.h>
-#define NUM_THREADS 2
 
 using namespace std;
 using namespace arma;
@@ -61,17 +60,18 @@ void convolute(int K, int C, int H, int W, cube* filters, cube& image, cube& res
   mat**M = new mat*[alpha]();
   for (int xi = 0; xi < alpha; xi++) {
     M[xi] = new mat[alpha];
-  } 
-  mat* m_hold = new mat[NUM_THREADS]();
-  for (int i = 0; i < NUM_THREADS; i++) {
+  }
+  int num_threads = omp_get_max_threads();
+  mat* m_hold = new mat[num_threads]();
+  for (int i = 0; i < num_threads; i++) {
     m_hold[i] = zeros<mat>(alpha, alpha);
   }
 
   double time = timestamp();
-  omp_set_num_threads(NUM_THREADS);
+  omp_set_num_threads(num_threads);;
   #pragma omp parallel
   {
-    #pragma omp for collapse(2)
+    #pragma omp for collapse(2) 
     for (int k = 0; k < K; k++) {
       for (int c = 0; c < C; c++) {
         // flop: K * C * (4 * 3 * 5) * 2 
@@ -116,7 +116,7 @@ void convolute(int K, int C, int H, int W, cube* filters, cube& image, cube& res
       }
     }
   }
-  #pragma omp parallel
+  #pragma omp parallel 
   {
     #pragma omp for collapse(3)
     for (int k = 0; k < K; k++) {
