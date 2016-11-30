@@ -7,6 +7,8 @@
 using namespace std;
 using namespace arma;
 
+// OpenMP version of winograd convolution. See comments in winograd.cpp.
+
 double timestamp();
 void report_winograd_statistics(int K, int C, int P, double time);
 
@@ -62,13 +64,16 @@ void convolute(int K, int C, int H, int W, cube* filters, cube& image, cube& res
     M[xi] = new mat[alpha];
   }
   int num_threads = omp_get_max_threads();
+
+  // we keep an array of m_hold values since otherwise this value would
+  // get overwritten by each different thread.
   mat* m_hold = new mat[num_threads]();
   for (int i = 0; i < num_threads; i++) {
     m_hold[i] = zeros<mat>(alpha, alpha);
   }
 
   double time = timestamp();
-  omp_set_num_threads(num_threads);;
+  omp_set_num_threads(num_threads);
   #pragma omp parallel
   {
     #pragma omp for collapse(2) 

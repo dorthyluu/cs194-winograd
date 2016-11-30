@@ -33,7 +33,6 @@ void convolute(int K, int C, int H, int W, cube* filters, cube& image, cube& res
   for (int i = 0; i < K; i++) {
     for (int c = 0; c < C; c++) {
       cx_mat fft_image = fft2(image.slice(c), H, W);
-      // would be significantly faster with multiple image support.
       cx_mat fft_filter = fft2(flipud(fliplr(filters[i].slice(c))), H, W);
       mat channel_out = real(ifft2(fft_image % fft_filter));
       result.slice(i) += channel_out(span(2, H - 1), span(2, W - 1));
