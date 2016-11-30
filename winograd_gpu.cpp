@@ -15,8 +15,13 @@ using namespace std;
 // #define m 2
 // #define r 3
 
-bool power_of_two(int x) {
-  return ((x & (x-1)) == 0);
+/* Returns the next number greater than or equal to global_size that is a 
+ * multiple of local_size.*/
+int gws(int global_size, int local_size) {
+  if (global_size % local_size != 0)    
+    return (global_size + local_size) / local_size * local_size;
+  else
+    return global_size;
 }
 
 void report_winograd_statistics(int K, int C, int P, double time) {
@@ -47,17 +52,14 @@ int main(int argc, char *argv[])
 
   /* Check that sizes are appropriate. */
   bool valid = true;
-  if (C % 2 != 0 && C % 3 != 0)
+  if(H % 2 != 0)
     valid = false;
-  if((H-2) % 16 != 0)
-    valid = false;
-  if((W-2) % 16 != 0)
+  if( W % 2 != 0)
     valid = false;
   if (!valid) {
     cout << "Please make sure that:\n";
-    cout << "C (# channels) is a multiple of 2 or 3\n";
-    cout << "H (height of image) minus 2 is a power of 2\n";
-    cout << "W (width of image) minus 2 is a power of 2\n";
+    cout << "H (height of image) minus 2 is a multiple of 16\n";
+    cout << "W (width of image) minus 2 is a multiple of 16\n";
     file.close();
     return 0;
   }
@@ -203,22 +205,24 @@ int main(int argc, char *argv[])
 
   /* Compute global and local work sizes for the following: */
 
+
+  // TODO : write a function to fix gws
   /* Filter transform, which calculates U. */
-  size_t global_work_size_U[2] = {(K+8)/8*8, C};
-  size_t local_work_size_U[2] = {fmin(K, 8), C};
+  size_t global_work_size_U[2] = {gws(K,8), gws(C,4)};
+  size_t local_work_size_U[2] = {fmin(K, 8), fmin(C, 4)};
 
   /* Data transform, which calculates V. */
-  size_t global_work_size_V[3] = {C, num_h_tiles, num_w_tiles};
-  size_t local_work_size_V[3] = {C, fmin(num_w_tiles, 4), fmin(num_w_tiles, 4)};
+  size_t global_work_size_V[3] = {gws(C, 4), gws(num_h_tiles, 4), gws(num_w_tiles, 4)};
+  size_t local_work_size_V[3] = {fmin(C, 4), fmin(num_h_tiles, 4), fmin(num_w_tiles, 4)};
 
   /* Calculating M. */
   int local_M = 8;
-  size_t global_work_size_M[2] = {(K+local_M)/local_M*local_M, (P+local_M)/local_M*local_M};
+  size_t global_work_size_M[2] = {gws(K, local_M), gws(P, local_M)};
   size_t local_work_size_M[2] = {local_M, local_M};
 
   /* Calculating Y. */
-  size_t global_work_size_Y[3] = {(K+2)/2*2, num_h_tiles, num_w_tiles};
-  size_t local_work_size_Y[3] = {fmin(K, 2), fmin(num_w_tiles, 8), fmin(num_w_tiles, 8)};
+  size_t global_work_size_Y[3] = {gws(K, 2), gws(num_h_tiles, 8), gws(num_w_tiles, 8)};
+  size_t local_work_size_Y[3] = {fmin(K, 2), fmin(num_h_tiles, 8), fmin(num_w_tiles, 8)};
 
   /* Get the compiled kernels. */
   cl_kernel filter_transform_kern = kernel_map[filter_transform_name_str];
@@ -260,7 +264,9 @@ int main(int argc, char *argv[])
   CHK_ERR(err);
   err = clSetKernelArg(data_transform_kern, 8, sizeof(int), &alpha);
   CHK_ERR(err);
-  err = clSetKernelArg(data_transform_kern, 9, sizeof(int), &num_w_tiles);
+  err = clSetKernelArg(data_transform_kern, 9, sizeof(int), &num_h_tiles);
+  CHK_ERR(err);
+  err = clSetKernelArg(data_transform_kern, 10, sizeof(int), &num_w_tiles);
   CHK_ERR(err);
 
   err = clSetKernelArg(calc_M_kern, 0, sizeof(cl_mem), &g_U);
@@ -296,7 +302,9 @@ int main(int argc, char *argv[])
   CHK_ERR(err);
   err = clSetKernelArg(calc_Y_kern, 8, sizeof(int), &alpha);
   CHK_ERR(err);
-  err = clSetKernelArg(calc_Y_kern, 9, sizeof(int), &num_w_tiles);
+  err = clSetKernelArg(calc_Y_kern, 9, sizeof(int), &num_h_tiles);
+  CHK_ERR(err);
+  err = clSetKernelArg(calc_Y_kern, 10, sizeof(int), &num_w_tiles);
   CHK_ERR(err);
 
   /* Start recording time for benchmarking. */

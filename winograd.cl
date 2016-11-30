@@ -55,14 +55,16 @@ __kernel void data_transform(__global float *data,
         int W,
         int m,
         int alpha,
+        int num_h_tiles,
         int num_w_tiles)
 {
   int c = get_global_id(0);
   int block_y = get_global_id(1);
   int block_x = get_global_id(2);
-  int b = block_y * num_w_tiles + block_x;
+  
 
-  if ((int) c < C && (int) b < P) {
+  if (c < C && block_y < num_h_tiles && block_x < num_w_tiles) {
+    int b = block_y * num_w_tiles + block_x;
 
     int x = block_x * m;
     int y = block_y * m;
@@ -137,14 +139,15 @@ __kernel void calc_Y(__global float *M,
         int P,
         int m,
         int alpha,
+        int num_h_tiles,
         int num_w_tiles)
 {
   int k = get_global_id(0);
   int block_y = get_global_id(1);
   int block_x = get_global_id(2);
-  int b = block_y * num_w_tiles + block_x;
-
-  if (k < K && b < P) {
+  
+  if (k < K && block_y < num_h_tiles && block_x < num_w_tiles) {
+    int b = block_y * num_w_tiles + block_x;
     float temp_m[16]; // alpha x alpha
     /* Gather temp_m from M, where:
      * temp_m[xi][nu] = M[xi][nu][k][b]*/
