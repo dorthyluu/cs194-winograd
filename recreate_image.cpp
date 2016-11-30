@@ -7,8 +7,8 @@ using namespace cimg_library;
 using namespace std;
 
 int main(int argc, char const *argv[]) {
-  if (argc != 2) {
-    cout << "Usage: ./reform_image [output file]" << endl;
+  if (argc != 3) {
+    cout << "Usage: ./reform_image [input filename] [output filename]" << endl;
     return 1;
   }
 
@@ -31,7 +31,9 @@ int main(int argc, char const *argv[]) {
 	}
 
   input.close();
-  CImgDisplay main_disp(image, argv[1]);
+  image.normalize(0, 255);
+  image.save(argv[2]);
+  CImgDisplay main_disp(image, argv[1], 0);
   while (!main_disp.is_closed()) {
     main_disp.wait();
 	}
