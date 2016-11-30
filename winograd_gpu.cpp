@@ -49,9 +49,9 @@ int main(int argc, char *argv[])
   bool valid = true;
   if (C % 2 != 0 && C % 3 != 0)
     valid = false;
-  if (!power_of_two(H-2))
+  if((H-2) % 16 != 0)
     valid = false;
-  if (!power_of_two(W-2))
+  if((W-2) % 16 != 0)
     valid = false;
   if (!valid) {
     cout << "Please make sure that:\n";
