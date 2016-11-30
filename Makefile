@@ -6,5 +6,10 @@ all:
 clean:
 	rm winograd
 	rm naive_convolution
+	rm compare_outputs
 	rm *.in
 	rm *.out
+
+image:
+	g++ -o format_image format_image.cpp  -O2 -L/usr/X11R6/lib -lm -lpthread -lX11
+	g++ -o recreate_image recreate_image.cpp  -O2 -L/usr/X11R6/lib -lm -lpthread -lX11
