@@ -361,7 +361,7 @@ int main(int argc, char *argv[])
   /* Write output Y to the specified file. */
   ofstream fileout;
   fileout.open(argv[2], ofstream::out | ofstream::trunc);
-  fileout << K << " " << C << " " << H << " " << W << endl;
+  fileout << K << " " << C << " " << out_H << " " << out_W << endl;
   for(int k = 0; k < K; k++) {
     fileout << "\n";
     for(int i = 0; i < out_H; i++) {
